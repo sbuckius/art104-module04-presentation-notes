@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Peer Review — Reality in a Digital Age</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, setDoc, deleteDoc, getDocs }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCcTksAfQ4BQ3BbZ-_D-XLtP5g85JukeN8",
+    authDomain: "art104-module04-present-notes.firebaseapp.com",
+    projectId: "art104-module04-present-notes",
+    storageBucket: "art104-module04-present-notes.firebasestorage.app",
+    messagingSenderId: "16838721531",
+    appId: "1:16838721531:web:edaaa49e4cebf6b5cf955e",
+    measurementId: "G-X8YYWBW7W8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  window._db = db;
+  window._fbReady = true;
+  window._collection = collection;
+  window._addDoc = addDoc;
+  window._onSnapshot = onSnapshot;
+  window._query = query;
+  window._orderBy = orderBy;
+  window._serverTimestamp = serverTimestamp;
+  window._doc = doc;
+  window._setDoc = setDoc;
+  window._deleteDoc = deleteDoc;
+  window._getDocs = getDocs;
+
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<style>
+:root {
+  --sun:    #f5a623;
+  --flame:  #e8620a;
+  --amber:  #f0c040;
+  --cream:  #fdf8ee;
+  --paper:  #fffcf4;
+  --ink:    #1e1206;
+  --muted:  #8a6a3a;
+  --border: #f0d898;
+  --warm:   #fef3d0;
+  --glow:   rgba(245,166,35,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+}
+
+/* ── SETUP SCREEN ── */
+#setupScreen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+#setupScreen::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sun) 0%, transparent 70%);
+  opacity: 0.12;
+  top: -200px; right: -100px;
+}
+#setupScreen::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--amber) 0%, transparent 70%);
+  opacity: 0.08;
+  bottom: -150px; left: -80px;
+}
+.setup-card {
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 52px 56px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+}
+.setup-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--sun);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.setup-card h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 2px;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.setup-card h1 span { color: var(--sun); }
+.setup-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 36px;
+  line-height: 1.6;
+}
+.setup-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.setup-tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.setup-tab.active {
+  background: var(--sun);
+  color: var(--ink);
+}
+.setup-form { display: flex; flex-direction: column; gap: 16px; }
+.setup-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: block;
+  font-weight: 500;
+}
+.setup-input {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--warm);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.setup-input:focus { border-color: var(--sun); background: white; }
+.btn-enter {
+  background: var(--sun);
+  border: none;
+  color: var(--ink);
+  padding: 16px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+.btn-enter:hover { background: var(--flame); color: white; }
+.btn-enter:active { transform: scale(0.98); }
+.setup-error {
+  font-size: 12px;
+  color: var(--flame);
+  text-align: center;
+  min-height: 18px;
+}
+
+/* ── TOP NAV ── */
+#appNav {
+  display: none;
+  background: var(--ink);
+  padding: 14px 40px;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+#appNav.visible { display: flex; }
+.nav-brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--amber);
+}
+.nav-user {
+  font-size: 13px;
+  color: #aaa;
+}
+.nav-user strong { color: var(--sun); }
+.btn-signout {
+  background: none;
+  border: 1px solid #444;
+  color: #888;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.btn-signout:hover { border-color: var(--sun); color: var(--sun); }
+
+/* ── MAIN APP ── */
+#studentApp { display: none; }
+#studentApp.visible { display: block; }
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  margin-bottom: 40px;
+  padding-bottom: 28px;
+  border-bottom: 2px solid var(--border);
+}
+.page-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--sun);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.page-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px;
+  letter-spacing: 2px;
+  line-height: 1;
+  color: var(--ink);
+}
+.page-header h2 em {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  color: var(--flame);
+}
+.page-desc {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── PROGRESS ── */
+.progress-wrap { margin-bottom: 36px; }
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.progress-track {
+  height: 5px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--flame), var(--amber));
+  border-radius: 99px;
+  transition: width 0.5s ease;
+}
+
+/* ── PRESENTATION CARD ── */
+.pres-card {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+}
+.pres-card:hover { box-shadow: 0 6px 28px var(--glow); }
+.pres-card.submitted { border-color: var(--sun); }
+
+.pres-header {
+  background: var(--ink);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.pres-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  color: var(--amber);
+  opacity: 0.5;
+  line-height: 1;
+  min-width: 38px;
+}
+.pres-title-wrap { flex: 1; }
+.pres-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #666; margin-bottom: 3px; }
+.pres-title { font-family: 'Instrument Serif', serif; font-size: 19px; color: white; }
+.pres-badge {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  border: 1px solid #444;
+  color: #666;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+.pres-badge.done { border-color: var(--sun); color: var(--sun); background: rgba(245,166,35,0.1); }
+.chevron { font-size: 16px; color: #555; transition: transform 0.3s; margin-left: 8px; }
+
+.pres-body { display: none; padding: 28px 32px; }
+.pres-body.open { display: block; }
+
+/* ── BULLET INPUTS ── */
+.bullet-section { margin-bottom: 22px; }
+.bullet-section-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bullet-section-label::before {
+  content: '';
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.bullet-section-label.positive::before { background: var(--sun); }
+.bullet-section-label.constructive::before { background: var(--flame); }
+
+.bullet-row { display: flex; gap: 12px; align-items: flex-start; }
+.bullet-select {
+  flex-shrink: 0;
+  width: 220px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--warm);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 0.2s;
+}
+.bullet-select:focus { border-color: var(--sun); }
+.bullet-textarea {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--warm);
+  outline: none;
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.5;
+  transition: border-color 0.2s, background 0.2s;
+}
+.bullet-textarea:focus { border-color: var(--sun); background: white; }
+
+.card-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+.btn-submit-card {
+  background: var(--sun);
+  color: var(--ink);
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-submit-card:hover { background: var(--flame); color: white; }
+.btn-submit-card:active { transform: scale(0.98); }
+.btn-submitted {
+  background: var(--warm);
+  color: var(--sun);
+  border: 2px solid var(--sun);
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: default;
+}
+
+/* ── LIVE RESPONSES PANEL ── */
+.live-section {
+  margin-top: 20px;
+  border-top: 2px dashed var(--border);
+  padding-top: 18px;
+}
+.live-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--sun);
+  font-weight: 500;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  background: var(--sun);
+  border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.live-responses-list { display: flex; flex-direction: column; gap: 10px; }
+.live-response-item {
+  background: var(--warm);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  animation: fadeSlide 0.4s ease;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.live-resp-author {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--flame);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.live-resp-bullet {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.live-resp-bullet:last-child { margin-bottom: 0; }
+.live-resp-tag {
+  flex-shrink: 0;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.tag-positive { background: var(--amber); color: var(--ink); }
+.tag-constructive { background: var(--flame); color: white; }
+.live-resp-text { color: var(--ink); }
+.live-empty {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* ── FIREBASE CONFIG BANNER ── */
+.config-banner {
+  background: var(--flame);
+  color: white;
+  padding: 12px 24px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+.config-banner a { color: var(--amber); }
+
+/* ══════════════════════════════════════════════
+   ADMIN DASHBOARD
+══════════════════════════════════════════════ */
+#adminApp { display: none; }
+#adminApp.visible { display: block; }
+
+.admin-header {
+  background: var(--ink);
+  padding: 28px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.admin-header::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sun) 0%, transparent 70%);
+  opacity: 0.1;
+}
+.admin-eyebrow {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--sun);
+  margin-bottom: 8px;
+}
+.admin-header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  letter-spacing: 2px;
+  color: white;
+}
+.admin-header h1 span { color: var(--amber); }
+.admin-stats {
+  display: flex;
+  gap: 28px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.admin-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--amber);
+  line-height: 1;
+}
+.admin-stat-label { font-size: 11px; color: #888; letter-spacing: 1px; }
+
+.admin-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* Admin tabs */
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+.admin-tab-btn {
+  padding: 10px 22px;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+.admin-tab-btn.active { color: var(--flame); border-bottom-color: var(--flame); }
+
+/* Admin grid */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+.admin-pres-card {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.admin-pres-head {
+  background: var(--warm);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid var(--border);
+}
+.admin-pres-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--sun);
+  line-height: 1;
+}
+.admin-pres-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 16px;
+  color: var(--ink);
+  flex: 1;
+}
+.admin-resp-count {
+  font-size: 11px;
+  background: var(--sun);
+  color: var(--ink);
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+.admin-pres-body { padding: 14px; max-height: 360px; overflow-y: auto; }
+.admin-resp-item {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+.admin-resp-item:last-child { border-bottom: none; }
+.admin-resp-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--flame);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.admin-bullet-line {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+  align-items: flex-start;
+}
+.admin-bullet-line:last-child { margin-bottom: 0; }
+.admin-tag {
+  flex-shrink: 0;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.admin-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 8px 0; }
+
+/* All responses view */
+.all-responses-wrap { display: flex; flex-direction: column; gap: 12px; }
+.all-resp-row {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.all-resp-meta { display: flex; flex-direction: column; gap: 4px; }
+.all-resp-author { font-size: 13px; font-weight: 500; color: var(--flame); }
+.all-resp-pres { font-size: 11px; color: var(--muted); }
+.all-resp-time { font-size: 10px; color: #bbb; }
+
+/* Admin controls */
+.admin-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.admin-search {
+  flex: 1;
+  min-width: 200px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--warm);
+  color: var(--ink);
+  outline: none;
+}
+.admin-search:focus { border-color: var(--sun); }
+.btn-admin-action {
+  background: var(--warm);
+  border: 2px solid var(--border);
+  color: var(--ink);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-admin-action:hover { border-color: var(--sun); background: var(--amber); }
+.btn-danger {
+  border-color: #ffccaa;
+  color: var(--flame);
+}
+.btn-danger:hover { background: var(--flame); color: white; border-color: var(--flame); }
+
+/* Edit presentations */
+.edit-pres-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.edit-pres-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.edit-pres-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--sun);
+  min-width: 28px;
+}
+.edit-pres-input {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--warm);
+  outline: none;
+}
+.edit-pres-input:focus { border-color: var(--sun); background: white; }
+.btn-remove-pres {
+  background: none;
+  border: 1px solid var(--border);
+  color: #bbb;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.btn-remove-pres:hover { border-color: var(--flame); color: var(--flame); }
+.admin-form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--sun);
+  border: none;
+  color: var(--ink);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--flame); color: white; }
+.btn-secondary {
+  background: var(--warm);
+  border: 2px solid var(--border);
+  color: var(--muted);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--sun); }
+
+/* Password change */
+.pwd-form { display: flex; flex-direction: column; gap: 14px; max-width: 360px; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .setup-card { padding: 36px 28px; }
+  .admin-header { padding: 24px 20px; }
+  .admin-main { padding: 28px 16px 60px; }
+  main { padding: 28px 16px 60px; }
+  .all-resp-row { grid-template-columns: 1fr; }
+  .bullet-row { flex-direction: column; }
+  .bullet-select { width: 100%; }
+  #appNav { padding: 12px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Config Banner (shown if Firebase not configured) -->
+<div class="config-banner" id="configBanner" style="display:none">
+  ⚠ Firebase not configured. Open the HTML file and add your Firebase config. 
+  <a href="https://console.firebase.google.com/" target="_blank">Get config →</a>
+</div>
+
+<!-- ── SETUP / LOGIN SCREEN ── -->
+<div id="setupScreen">
+  <div class="setup-card">
+    <div class="setup-eyebrow">Reality in a Digital Age</div>
+    <h1>Peer <span>Review</span><br>Notes</h1>
+    <p class="setup-sub">Enter your name to begin reviewing your classmates' presentations.</p>
+
+    <div class="setup-tabs">
+      <button class="setup-tab active" onclick="switchSetupTab('student')">Student</button>
+      <button class="setup-tab" onclick="switchSetupTab('admin')">Instructor</button>
+    </div>
+
+    <div class="setup-form" id="studentSetupForm">
+      <div>
+        <label class="setup-label">Your Name</label>
+        <input type="text" class="setup-input" id="studentNameInput" placeholder="First Last" onkeydown="if(event.key==='Enter')enterStudent()"/>
+      </div>
+      <div id="studentSetupError" class="setup-error"></div>
+      <button class="btn-enter" onclick="enterStudent()">Begin Review →</button>
+    </div>
+
+    <div class="setup-form" id="adminSetupForm" style="display:none">
+      <div>
+        <label class="setup-label">Admin Password</label>
+        <input type="password" class="setup-input" id="adminPasswordInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')enterAdmin()"/>
+      </div>
+      <div id="adminSetupError" class="setup-error"></div>
+      <button class="btn-enter" onclick="enterAdmin()">Enter Dashboard →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOP NAV ── -->
+<nav id="appNav">
+  <div class="nav-brand">Peer Review</div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="nav-user">Reviewing as <strong id="navUserName"></strong></div>
+    <button class="btn-signout" onclick="signOut()">← Exit</button>
+  </div>
+</nav>
+
+<!-- ── STUDENT APP ── -->
+<div id="studentApp">
+  <main>
+    <div class="page-header">
+      <div class="page-eyebrow">Reality in a Digital Age</div>
+      <h2>Peer <em>Review</em> Notes</h2>
+      <p class="page-desc">Review each presentation below. For each one, write one positive observation and one constructive suggestion.</p>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="progressLabel">0 of 7 presentations reviewed</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div id="presContainer"></div>
+  </main>
+</div>
+
+<!-- ── ADMIN DASHBOARD ── -->
+<div id="adminApp">
+  <div class="admin-header">
+    <div class="admin-eyebrow">Instructor Dashboard — Reality in a Digital Age</div>
+    <h1>Peer Review <span>Live</span></h1>
+    <div class="admin-stats">
+      <div class="admin-stat">
+        <div class="admin-stat-num" id="statResponses">0</div>
+        <div class="admin-stat-label">Total Responses</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-num" id="statStudents">0</div>
+        <div class="admin-stat-label">Students</div>
+      </div>
+      <div class="admin-stat">
+        <div class="admin-stat-num" id="statPresentations">7</div>
+        <div class="admin-stat-label">Presentations</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-main">
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" onclick="switchAdminTab('byPresentation')">By Presentation</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('allResponses')">All Responses</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('settings')">Settings</button>
+    </div>
+
+    <!-- By Presentation -->
+    <div id="adminTab-byPresentation">
+      <div class="admin-controls">
+        <input type="text" class="admin-search" id="adminSearch" placeholder="Search responses…" oninput="renderAdminByPres()"/>
+        <button class="btn-admin-action" onclick="exportAdminCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="admin-grid" id="adminGrid"></div>
+    </div>
+
+    <!-- All Responses -->
+    <div id="adminTab-allResponses" style="display:none">
+      <div class="admin-controls">
+        <input type="text" class="admin-search" id="adminSearchAll" placeholder="Search by name or text…" oninput="renderAdminAll()"/>
+        <button class="btn-admin-action btn-danger" onclick="clearAllResponses()">🗑 Clear All</button>
+      </div>
+      <div class="all-responses-wrap" id="allResponsesWrap"></div>
+    </div>
+
+    <!-- Settings -->
+    <div id="adminTab-settings" style="display:none">
+      <h3 style="font-family:'Instrument Serif',serif;font-size:22px;margin-bottom:20px">Presentation Titles</h3>
+      <div class="edit-pres-list" id="editPresList"></div>
+      <div class="admin-form-actions">
+        <button class="btn-primary" onclick="savePresSettings()">Save Titles</button>
+        <button class="btn-secondary" onclick="addPresRow()">+ Add Presentation</button>
+      </div>
+
+      <h3 style="font-family:'Instrument Serif',serif;font-size:22px;margin:36px 0 16px">Change Admin Password</h3>
+      <div class="pwd-form">
+        <div>
+          <label class="setup-label">New Password</label>
+          <input type="password" class="setup-input" id="newPwdInput" placeholder="New password"/>
+        </div>
+        <div>
+          <label class="setup-label">Confirm Password</label>
+          <input type="password" class="setup-input" id="confirmPwdInput" placeholder="Confirm"/>
+        </div>
+        <div id="pwdMsg" style="font-size:12px;min-height:16px"></div>
+        <button class="btn-primary" onclick="changePassword()" style="width:fit-content">Update Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  APP STATE
+// ════════════════════════════════════════════════════════
+let currentUser  = null;
+let isAdmin      = false;
+let presentations = [
+  "Presentation 1","Presentation 2","Presentation 3","Presentation 4",
+  "Presentation 5","Presentation 6","Presentation 7"
+];
+let ADMIN_PASSWORD = 'teacher123';
+let allResponses   = {};   // { presIndex: [ {name, bullet1Type, bullet1, bullet2Type, bullet2, ts} ] }
+let submittedCards = new Set();
+let unsubscribes   = [];
+
+const POSITIVE_OPTIONS = [
+  "Something that I loved about this project",
+  "Something that is working well",
+  "Something about the concept that is interesting",
+  "Something about the formal aspects of the work that I find interesting",
+];
+const CONSTRUCTIVE_OPTIONS = [
+  "A suggestion for the formal aspects of the work",
+  "A suggestion for the conceptual aspects of the work",
+  "An idea to push the project further",
+  "An idea to expand the project",
+  "A suggested revision to the project",
+];
+
+// ════════════════════════════════════════════════════════
+//  FIREBASE HELPERS
+// ════════════════════════════════════════════════════════
+function db()        { return window._db; }
+function fbReady()   { return !!window._fbReady; }
+
+function responsesCol(presIndex) {
+  return window._collection(db(), `presentations/${presIndex}/responses`);
+}
+
+function configDoc() {
+  return window._doc(db(), 'config', 'app');
+}
+
+async function loadConfig() {
+  try {
+    const snap = await window._getDocs(window._collection(db(), 'config'));
+    snap.forEach(d => {
+      if (d.id === 'app') {
+        const data = d.data();
+        if (data.presentations) presentations = data.presentations;
+        if (data.adminPassword) ADMIN_PASSWORD = data.adminPassword;
+      }
+    });
+  } catch(e) { console.warn('Config load:', e); }
+}
+
+// ════════════════════════════════════════════════════════
+//  SETUP / LOGIN
+// ════════════════════════════════════════════════════════
+function switchSetupTab(tab) {
+  document.querySelectorAll('.setup-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0 && tab==='student') || (i===1 && tab==='admin'));
+  });
+  document.getElementById('studentSetupForm').style.display = tab==='student' ? 'flex' : 'none';
+  document.getElementById('adminSetupForm').style.display   = tab==='admin'   ? 'flex' : 'none';
+}
+
+async function enterStudent() {
+  const name = document.getElementById('studentNameInput').value.trim();
+  if (!name) { document.getElementById('studentSetupError').textContent = 'Please enter your name.'; return; }
+  if (!fbReady()) { showConfigBanner(); return; }
+  await loadConfig();
+  currentUser = name;
+  isAdmin = false;
+  showStudentApp();
+}
+
+async function enterAdmin() {
+  const pwd = document.getElementById('adminPasswordInput').value;
+  if (!fbReady()) { showConfigBanner(); return; }
+  await loadConfig();
+  if (pwd !== ADMIN_PASSWORD) {
+    document.getElementById('adminSetupError').textContent = 'Incorrect password.';
+    document.getElementById('adminPasswordInput').value = '';
+    return;
+  }
+  currentUser = 'Instructor';
+  isAdmin = true;
+  showAdminApp();
+}
+
+function signOut() {
+  unsubscribes.forEach(u => u());
+  unsubscribes = [];
+  submittedCards.clear();
+  allResponses = {};
+  currentUser = null;
+  isAdmin = false;
+  document.getElementById('setupScreen').style.display = 'flex';
+  document.getElementById('appNav').classList.remove('visible');
+  document.getElementById('studentApp').classList.remove('visible');
+  document.getElementById('adminApp').classList.remove('visible');
+  document.getElementById('adminPasswordInput').value = '';
+  document.getElementById('studentNameInput').value = '';
+  document.getElementById('studentSetupError').textContent = '';
+  document.getElementById('adminSetupError').textContent = '';
+}
+
+function showConfigBanner() {
+  document.getElementById('configBanner').style.display = 'block';
+}
+
+// ════════════════════════════════════════════════════════
+//  STUDENT APP
+// ════════════════════════════════════════════════════════
+function showStudentApp() {
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('appNav').classList.add('visible');
+  document.getElementById('studentApp').classList.add('visible');
+  document.getElementById('navUserName').textContent = currentUser;
+  renderPresCards();
+  subscribeToAll();
+}
+
+function renderPresCards() {
+  const container = document.getElementById('presContainer');
+  container.innerHTML = '';
+  presentations.forEach((title, i) => {
+    container.appendChild(buildPresCard(i, title));
+  });
+  updateStudentProgress();
+}
+
+function buildPresCard(i, title) {
+  const card = document.createElement('div');
+  card.className = 'pres-card';
+  card.id = `pres-card-${i}`;
+
+  card.innerHTML = `
+    <div class="pres-header" onclick="togglePresCard(${i})">
+      <div class="pres-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="pres-title-wrap">
+        <div class="pres-eyebrow">Presentation ${i+1}</div>
+        <div class="pres-title">${title}</div>
+      </div>
+      <div class="pres-badge" id="badge-${i}">Not started</div>
+      <div class="chevron" id="chevron-${i}">▸</div>
+    </div>
+    <div class="pres-body" id="body-${i}">
+      <!-- Bullet 1: Positive -->
+      <div class="bullet-section">
+        <div class="bullet-section-label positive">Positive Observation</div>
+        <div class="bullet-row">
+          <select class="bullet-select" id="b1type-${i}">
+            <option value="">— Choose type —</option>
+            ${POSITIVE_OPTIONS.map(o=>`<option value="${o}">${o}</option>`).join('')}
+          </select>
+          <textarea class="bullet-textarea" id="b1text-${i}" placeholder="Write your observation…" rows="2"></textarea>
+        </div>
+      </div>
+      <!-- Bullet 2: Constructive -->
+      <div class="bullet-section">
+        <div class="bullet-section-label constructive">Constructive Suggestion</div>
+        <div class="bullet-row">
+          <select class="bullet-select" id="b2type-${i}">
+            <option value="">— Choose type —</option>
+            ${CONSTRUCTIVE_OPTIONS.map(o=>`<option value="${o}">${o}</option>`).join('')}
+          </select>
+          <textarea class="bullet-textarea" id="b2text-${i}" placeholder="Write your suggestion…" rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="card-actions" id="actions-${i}">
+        <button class="btn-submit-card" onclick="submitCard(${i})">Submit Review ✓</button>
+      </div>
+
+      <!-- Live responses -->
+      <div class="live-section">
+        <div class="live-label"><div class="live-dot"></div> Live Responses</div>
+        <div class="live-responses-list" id="live-list-${i}">
+          <div class="live-empty">No responses yet…</div>
+        </div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function togglePresCard(i) {
+  const body    = document.getElementById(`body-${i}`);
+  const chevron = document.getElementById(`chevron-${i}`);
+  const isOpen  = body.classList.contains('open');
+  document.querySelectorAll('.pres-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.chevron').forEach(c => c.textContent = '▸');
+  if (!isOpen) { body.classList.add('open'); chevron.textContent = '▾'; }
+}
+
+async function submitCard(i) {
+  const b1type = document.getElementById(`b1type-${i}`).value.trim();
+  const b1text = document.getElementById(`b1text-${i}`).value.trim();
+  const b2type = document.getElementById(`b2type-${i}`).value.trim();
+  const b2text = document.getElementById(`b2text-${i}`).value.trim();
+
+  if (!b1text || !b2text) { alert('Please fill in both bullet points before submitting.'); return; }
+
+  try {
+    await window._addDoc(responsesCol(i), {
+      name: currentUser,
+      b1type, b1text,
+      b2type, b2text,
+      ts: window._serverTimestamp(),
+    });
+    submittedCards.add(i);
+    document.getElementById(`pres-card-${i}`).classList.add('submitted');
+    document.getElementById(`badge-${i}`).textContent = '✓ Submitted';
+    document.getElementById(`badge-${i}`).classList.add('done');
+    document.getElementById(`actions-${i}`).innerHTML =
+      `<div class="btn-submitted">✓ Submitted</div>`;
+    // disable inputs
+    [`b1type-${i}`,`b1text-${i}`,`b2type-${i}`,`b2text-${i}`].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = true;
+    });
+    updateStudentProgress();
+    setTimeout(() => { if (i+1 < presentations.length) togglePresCard(i+1); }, 400);
+  } catch(e) { alert('Error submitting. Check your Firebase config. ' + e.message); }
+}
+
+function updateStudentProgress() {
+  const done  = submittedCards.size;
+  const total = presentations.length;
+  const pct   = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('progressLabel').textContent = `${done} of ${total} presentations reviewed`;
+  document.getElementById('progressPct').textContent   = `${pct}%`;
+  document.getElementById('progressFill').style.width  = pct + '%';
+}
+
+// ── Live subscription ──
+function subscribeToAll() {
+  presentations.forEach((_, i) => {
+    const q   = window._query(responsesCol(i), window._orderBy('ts', 'asc'));
+    const unsub = window._onSnapshot(q, snap => {
+      const responses = [];
+      snap.forEach(d => responses.push({ id: d.id, ...d.data() }));
+      allResponses[i] = responses;
+      renderLiveList(i, responses);
+      if (isAdmin) {
+        renderAdminByPres();
+        renderAdminAll();
+        updateAdminStats();
+      }
+    });
+    unsubscribes.push(unsub);
+  });
+}
+
+function renderLiveList(i, responses) {
+  const list = document.getElementById(`live-list-${i}`);
+  if (!list) return;
+  if (!responses || responses.length === 0) {
+    list.innerHTML = '<div class="live-empty">No responses yet…</div>';
+    return;
+  }
+  list.innerHTML = responses.map(r => `
+    <div class="live-response-item">
+      <div class="live-resp-author">${escHtml(r.name)}</div>
+      <div class="live-resp-bullet">
+        <span class="live-resp-tag tag-positive">${shortTag(r.b1type)}</span>
+        <span class="live-resp-text">${escHtml(r.b1text)}</span>
+      </div>
+      <div class="live-resp-bullet">
+        <span class="live-resp-tag tag-constructive">${shortTag(r.b2type)}</span>
+        <span class="live-resp-text">${escHtml(r.b2text)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function shortTag(type) {
+  if (!type) return '–';
+  const map = {
+    "Something that I loved about this project": "Loved",
+    "Something that is working well": "Working",
+    "Something about the concept that is interesting": "Concept",
+    "Something about the formal aspects of the work that I find interesting": "Formal",
+    "A suggestion for the formal aspects of the work": "Formal ↑",
+    "A suggestion for the conceptual aspects of the work": "Concept ↑",
+    "An idea to push the project further": "Push",
+    "An idea to expand the project": "Expand",
+    "A suggested revision to the project": "Revise",
+  };
+  return map[type] || type.slice(0,10);
+}
+
+// ════════════════════════════════════════════════════════
+//  ADMIN DASHBOARD
+// ════════════════════════════════════════════════════════
+function showAdminApp() {
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('appNav').classList.add('visible');
+  document.getElementById('adminApp').classList.add('visible');
+  document.getElementById('navUserName').textContent = 'Instructor';
+  renderEditPresList();
+  subscribeToAll();
+  updateAdminStats();
+}
+
+function switchAdminTab(tab) {
+  ['byPresentation','allResponses','settings'].forEach(t => {
+    document.getElementById(`adminTab-${t}`).style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.admin-tab-btn').forEach((btn,i) => {
+    btn.classList.toggle('active', ['byPresentation','allResponses','settings'][i] === tab);
+  });
+  if (tab === 'byPresentation') renderAdminByPres();
+  if (tab === 'allResponses')   renderAdminAll();
+  if (tab === 'settings')       renderEditPresList();
+}
+
+function updateAdminStats() {
+  let total = 0, students = new Set();
+  Object.values(allResponses).forEach(arr => {
+    arr.forEach(r => { total++; students.add(r.name); });
+  });
+  document.getElementById('statResponses').textContent    = total;
+  document.getElementById('statStudents').textContent     = students.size;
+  document.getElementById('statPresentations').textContent = presentations.length;
+}
+
+function renderAdminByPres() {
+  const q    = (document.getElementById('adminSearch')?.value||'').toLowerCase();
+  const grid = document.getElementById('adminGrid');
+  grid.innerHTML = '';
+
+  presentations.forEach((title, i) => {
+    let responses = allResponses[i] || [];
+    if (q) responses = responses.filter(r =>
+      r.name?.toLowerCase().includes(q) ||
+      r.b1text?.toLowerCase().includes(q) ||
+      r.b2text?.toLowerCase().includes(q)
+    );
+    const card = document.createElement('div');
+    card.className = 'admin-pres-card';
+    card.innerHTML = `
+      <div class="admin-pres-head">
+        <div class="admin-pres-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="admin-pres-title">${escHtml(title)}</div>
+        <div class="admin-resp-count">${responses.length}</div>
+      </div>
+      <div class="admin-pres-body">
+        ${responses.length === 0
+          ? '<div class="admin-empty">No responses yet</div>'
+          : responses.map(r => `
+            <div class="admin-resp-item">
+              <div class="admin-resp-name">${escHtml(r.name)}</div>
+              <div class="admin-bullet-line">
+                <span class="admin-tag tag-positive">${shortTag(r.b1type)}</span>
+                <span>${escHtml(r.b1text)}</span>
+              </div>
+              <div class="admin-bullet-line">
+                <span class="admin-tag tag-constructive">${shortTag(r.b2type)}</span>
+                <span>${escHtml(r.b2text)}</span>
+              </div>
+            </div>`).join('')
+        }
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderAdminAll() {
+  const q   = (document.getElementById('adminSearchAll')?.value||'').toLowerCase();
+  const wrap = document.getElementById('allResponsesWrap');
+  if (!wrap) return;
+  const all = [];
+  presentations.forEach((title, i) => {
+    (allResponses[i]||[]).forEach(r => all.push({...r, presIndex: i, presTitle: title}));
+  });
+  all.sort((a,b) => (b.ts?.seconds||0) - (a.ts?.seconds||0));
+  const filtered = q
+    ? all.filter(r => r.name?.toLowerCase().includes(q)||r.b1text?.toLowerCase().includes(q)||r.b2text?.toLowerCase().includes(q))
+    : all;
+
+  if (filtered.length === 0) {
+    wrap.innerHTML = '<div class="admin-empty" style="padding:20px">No responses yet.</div>';
+    return;
+  }
+  wrap.innerHTML = filtered.map(r => `
+    <div class="all-resp-row">
+      <div class="all-resp-meta">
+        <div class="all-resp-author">${escHtml(r.name)}</div>
+        <div class="all-resp-pres">${escHtml(r.presTitle)}</div>
+        <div class="all-resp-time">${r.ts?.seconds ? new Date(r.ts.seconds*1000).toLocaleTimeString() : ''}</div>
+      </div>
+      <div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);margin-bottom:6px">Positive</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${escHtml(r.b1type||'')}</div>
+        <div style="font-size:13px">${escHtml(r.b1text)}</div>
+      </div>
+      <div>
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--flame);margin-bottom:6px">Constructive</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${escHtml(r.b2type||'')}</div>
+        <div style="font-size:13px">${escHtml(r.b2text)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderEditPresList() {
+  const list = document.getElementById('editPresList');
+  if (!list) return;
+  list.innerHTML = '';
+  presentations.forEach((title, i) => {
+    const row = document.createElement('div');
+    row.className = 'edit-pres-row';
+    row.innerHTML = `
+      <div class="edit-pres-num">${i+1}</div>
+      <input class="edit-pres-input" type="text" value="${escHtml(title)}" placeholder="Presentation title" id="editPres-${i}"/>
+      <button class="btn-remove-pres" onclick="removePresRow(${i})">✕</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function addPresRow() {
+  presentations.push(`Presentation ${presentations.length + 1}`);
+  renderEditPresList();
+}
+
+function removePresRow(i) {
+  if (presentations.length <= 1) { alert('Must have at least one presentation.'); return; }
+  presentations.splice(i, 1);
+  renderEditPresList();
+}
+
+async function savePresSettings() {
+  const inputs = document.querySelectorAll('[id^="editPres-"]');
+  const newTitles = [];
+  inputs.forEach(inp => {
+    const val = inp.value.trim();
+    if (val) newTitles.push(val);
+  });
+  if (newTitles.length === 0) { alert('Add at least one presentation.'); return; }
+  presentations = newTitles;
+  try {
+    await window._setDoc(configDoc(), { presentations, adminPassword: ADMIN_PASSWORD });
+    alert('Presentation titles saved!');
+    updateAdminStats();
+    renderAdminByPres();
+  } catch(e) { alert('Error saving: ' + e.message); }
+}
+
+async function changePassword() {
+  const np = document.getElementById('newPwdInput').value;
+  const cp = document.getElementById('confirmPwdInput').value;
+  const msg = document.getElementById('pwdMsg');
+  if (!np) { msg.style.color=var_flame(); msg.textContent='Enter a new password.'; return; }
+  if (np !== cp) { msg.style.color=var_flame(); msg.textContent='Passwords do not match.'; return; }
+  ADMIN_PASSWORD = np;
+  try {
+    await window._setDoc(configDoc(), { presentations, adminPassword: ADMIN_PASSWORD });
+    msg.style.color='green'; msg.textContent='Password updated!';
+    document.getElementById('newPwdInput').value='';
+    document.getElementById('confirmPwdInput').value='';
+  } catch(e) { msg.style.color=var_flame(); msg.textContent='Error: '+e.message; }
+}
+function var_flame() { return '#e8620a'; }
+
+async function clearAllResponses() {
+  if (!confirm('Delete ALL responses from every presentation? This cannot be undone.')) return;
+  try {
+    for (let i = 0; i < presentations.length; i++) {
+      const snap = await window._getDocs(responsesCol(i));
+      for (const d of snap.docs) await window._deleteDoc(d.ref);
+    }
+    allResponses = {};
+    renderAdminByPres();
+    renderAdminAll();
+    updateAdminStats();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function exportAdminCSV() {
+  const rows = [['Student','Presentation','Positive Type','Positive Response','Constructive Type','Constructive Response','Time']];
+  presentations.forEach((title, i) => {
+    (allResponses[i]||[]).forEach(r => {
+      rows.push([
+        r.name||'', title,
+        r.b1type||'', r.b1text||'',
+        r.b2type||'', r.b2text||'',
+        r.ts?.seconds ? new Date(r.ts.seconds*1000).toLocaleString() : ''
+      ]);
+    });
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'peer_review_responses.csv';
+  a.click();
+}
+
+// ════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── INIT ──
+document.addEventListener('firebase-ready', async () => {
+  console.log('Firebase ready');
+});
+
+// Check if firebase config is placeholder
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (!window._fbReady) {
+      document.getElementById('configBanner').style.display = 'block';
+    }
+  }, 3000);
+});
+</script>
+</body>
+</html>
