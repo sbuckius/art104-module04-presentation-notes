@@ -558,106 +558,90 @@ async function doClear(){
 function exportPDF(){
   if(!window.jspdf){alert('PDF library not loaded yet, please try again.');return}
   var jsPDF=window.jspdf.jsPDF;
-  var doc=new jsPDF({unit:'mm',format:'letter'});
+  var doc=new jsPDF({unit:'pt',format:'letter'});
+  var PW=612, PH=792;
+  var L=54, R=54, y=54;
+  var TW=PW-L-R; // 504pt — the ONLY width used for all text
 
-  // Letter = 215.9mm x 279.4mm
-  var PW=215.9, PH=279.4;
-  var left=20, right=20, top=20;
-  var usableW=PW-left-right;  // 175.9mm — safe text width
-  var y=top;
-  var lineH=6;
+  function addPage(){ doc.addPage(); y=54; }
+  function need(h){ if(y+h>PH-54) addPage(); }
 
-  function chkY(need){
-    if(y+need>PH-15){doc.addPage();y=top;}
+  // helper: set font then split — always in this order
+  function split(txt, sz, style){
+    doc.setFont('helvetica', style||'normal');
+    doc.setFontSize(sz);
+    return doc.splitTextToSize(String(txt), TW);
   }
 
-  function writeLine(txt,size,style,color){
-    doc.setFont('helvetica',style||'normal');
-    doc.setFontSize(size||10);
-    doc.setTextColor(color||'#000000');
-    var lines=doc.splitTextToSize(txt,usableW);
-    chkY(lines.length*(lineH+1)+4);
-    doc.text(lines,left,y);
-    y+=lines.length*(lineH+1)+2;
+  function drawText(lines, sz, style, r, g, b){
+    doc.setFont('helvetica', style||'normal');
+    doc.setFontSize(sz);
+    doc.setTextColor(r||0, g||0, b||0);
+    var lh = sz*1.35;
+    need(lines.length*lh+4);
+    doc.text(lines, L, y);
+    y += lines.length*lh + 4;
   }
 
-  function rule(){
-    chkY(4);
-    doc.setDrawColor(220,200,150);
-    doc.line(left,y,PW-right,y);
-    y+=4;
-  }
-
-  // ── HEADER ──
+  // ── COVER HEADER ──
   doc.setFillColor(30,18,6);
-  doc.rect(0,0,PW,28,'F');
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(16);
-  doc.setTextColor(245,166,35);
-  doc.text('Peer Review Notes',left,18);
-  doc.setFont('helvetica','normal');
-  doc.setFontSize(9);
-  doc.setTextColor(200,180,140);
-  doc.text('Reality in a Digital Age',left+72,18);
-  y=36;
-
-  // Student name + date
-  writeLine(user+'   ·   '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),9,'normal','#8a6a3a');
-  y+=4;
-  rule();
+  doc.rect(0,0,PW,90,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(245,166,35);
+  doc.text('Peer Review Notes', L, 40);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(180,150,100);
+  doc.text('Reality in a Digital Age', L, 58);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(150,130,90);
+  var dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  doc.text(user + '   \u00b7   ' + dateStr, L, 76);
+  y = 110;
 
   // ── EACH PRESENTATION ──
-  pres.forEach(function(title,i){
-    if(!done.has(i))return;
+  pres.forEach(function(title, i){
+    if(!done.has(i)) return;
 
-    var b1t=($id('s1-'+i)||{}).value||'Positive Observation';
-    var b1 =($id('t1-'+i)||{}).value||'(no response)';
-    var b2t=($id('s2-'+i)||{}).value||'Constructive Suggestion';
-    var b2 =($id('t2-'+i)||{}).value||'(no response)';
+    var b1label = ($id('s1-'+i)||{}).value || 'Positive Observation';
+    var b1text  = ($id('t1-'+i)||{}).value || '';
+    var b2label = ($id('s2-'+i)||{}).value || 'Constructive Suggestion';
+    var b2text  = ($id('t2-'+i)||{}).value || '';
 
-    chkY(40);
-
-    // Presentation title bar
+    // ── Presentation title ──
+    need(30);
     doc.setFillColor(30,18,6);
-    doc.rect(left-2,y-4,usableW+4,10,'F');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(10);
-    doc.setTextColor(240,192,64);
-    doc.text(pad(i+1)+'.  '+title,left,y+3);
-    y+=12;
+    doc.rect(L-6, y-12, TW+12, 24, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(240,192,64);
+    doc.text(pad(i+1) + '.  ' + title, L, y+2);
+    y += 18;
 
-    // Bullet 1
-    writeLine(b1t.toUpperCase(),7,'bold','#b07820');
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor('#1e1206');
-    var b1lines=doc.splitTextToSize(b1,usableW-4);
-    chkY(b1lines.length*(lineH+1)+4);
-    doc.text(b1lines,left+3,y);
-    y+=b1lines.length*(lineH+1)+5;
+    // ── Bullet 1 label ──
+    var lbl1 = split(b1label.toUpperCase(), 8, 'bold');
+    drawText(lbl1, 8, 'bold', 160, 110, 20);
 
-    // Bullet 2
-    writeLine(b2t.toUpperCase(),7,'bold','#b04010');
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(10);
-    doc.setTextColor('#1e1206');
-    var b2lines=doc.splitTextToSize(b2,usableW-4);
-    chkY(b2lines.length*(lineH+1)+4);
-    doc.text(b2lines,left+3,y);
-    y+=b2lines.length*(lineH+1)+5;
+    // ── Bullet 1 body ──
+    var body1 = split(b1text || '(no response)', 11, 'normal');
+    drawText(body1, 11, 'normal', 30, 18, 6);
+    y += 6;
 
-    rule();
+    // ── Bullet 2 label ──
+    var lbl2 = split(b2label.toUpperCase(), 8, 'bold');
+    drawText(lbl2, 8, 'bold', 180, 70, 10);
+
+    // ── Bullet 2 body ──
+    var body2 = split(b2text || '(no response)', 11, 'normal');
+    drawText(body2, 11, 'normal', 30, 18, 6);
+    y += 12;
+
+    // divider
+    need(6);
+    doc.setDrawColor(220,200,150); doc.line(L, y, PW-R, y);
+    y += 10;
   });
 
-  // page numbers
-  var total=doc.internal.getNumberOfPages();
-  for(var p=1;p<=total;p++){
+  // ── PAGE NUMBERS ──
+  var total = doc.internal.getNumberOfPages();
+  for(var p=1; p<=total; p++){
     doc.setPage(p);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(7);
-    doc.setTextColor(160,140,100);
-    doc.text('Page '+p+' of '+total,PW/2,PH-6,{align:'center'});
-    doc.text(user+' · Peer Review Notes',left,PH-6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(160,140,100);
+    doc.text('Page '+p+' of '+total, PW/2, PH-20, {align:'center'});
   }
 
   doc.save(user.replace(/\s+/g,'_')+'_Peer_Review.pdf');
