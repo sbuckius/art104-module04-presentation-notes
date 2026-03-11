@@ -239,7 +239,7 @@ body {
 main {
   max-width: 860px;
   margin: 0 auto;
-  padding: 40px 24px 80px;
+  padding: 40px 24px 120px;
 }
 
 /* ── PAGE HEADER ── */
@@ -861,7 +861,7 @@ main {
     <div class="page-header">
       <div class="page-eyebrow">Reality in a Digital Age</div>
       <h2>Peer <em>Review</em> Notes</h2>
-      <p class="page-desc">Review each presentation below. For each one, write one positive observation and one constructive suggestion.</p>
+      <p class="page-desc">Review your classmates' presentations below. Write one positive observation and one constructive suggestion for each. <strong>You must review at least 5</strong> — feel free to review all 7.</p>
     </div>
 
     <div class="progress-wrap">
@@ -875,6 +875,18 @@ main {
     <div id="presContainer"></div>
   </main>
 </div>
+
+  <!-- Minimum bar -->
+  <div id="minBar" style="
+    position:fixed; bottom:0; left:0; right:0;
+    background:var(--ink); color:white;
+    padding:14px 32px; display:flex; align-items:center; justify-content:space-between;
+    z-index:200; box-shadow:0 -4px 24px rgba(0,0,0,0.2);
+    font-family:'DM Sans',sans-serif; font-size:13px; gap:16px; flex-wrap:wrap;
+  ">
+    <span id="minBarText" style="color:#aaa">Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.</span>
+    <span id="minBarCount" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--sun)">0 / 5 minimum</span>
+  </div>
 
 <!-- ── ADMIN DASHBOARD ── -->
 <div id="adminApp">
@@ -949,117 +961,6 @@ main {
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════
-//  APP STATE
-// ════════════════════════════════════════════════════════
-let currentUser  = null;
-let isAdmin      = false;
-let presentations = [
-  "Presentation 1","Presentation 2","Presentation 3","Presentation 4",
-  "Presentation 5","Presentation 6","Presentation 7"
-];
-let ADMIN_PASSWORD = 'teacher123';
-let allResponses   = {};   // { presIndex: [ {name, bullet1Type, bullet1, bullet2Type, bullet2, ts} ] }
-let submittedCards = new Set();
-let unsubscribes   = [];
-
-const POSITIVE_OPTIONS = [
-  "Something that I loved about this project",
-  "Something that is working well",
-  "Something about the concept that is interesting",
-  "Something about the formal aspects of the work that I find interesting",
-];
-const CONSTRUCTIVE_OPTIONS = [
-  "A suggestion for the formal aspects of the work",
-  "A suggestion for the conceptual aspects of the work",
-  "An idea to push the project further",
-  "An idea to expand the project",
-  "A suggested revision to the project",
-];
-
-// ════════════════════════════════════════════════════════
-//  FIREBASE HELPERS
-// ════════════════════════════════════════════════════════
-function db()        { return window._db; }
-function fbReady()   { return !!window._fbReady; }
-
-function responsesCol(presIndex) {
-  return window._collection(db(), `presentations/${presIndex}/responses`);
-}
-
-function configDoc() {
-  return window._doc(db(), 'config', 'app');
-}
-
-async function loadConfig() {
-  try {
-    const snap = await window._getDocs(window._collection(db(), 'config'));
-    snap.forEach(d => {
-      if (d.id === 'app') {
-        const data = d.data();
-        if (data.presentations) presentations = data.presentations;
-        if (data.adminPassword) ADMIN_PASSWORD = data.adminPassword;
-      }
-    });
-  } catch(e) { console.warn('Config load:', e); }
-}
-
-// ════════════════════════════════════════════════════════
-//  SETUP / LOGIN
-// ════════════════════════════════════════════════════════
-function switchSetupTab(tab) {
-  document.querySelectorAll('.setup-tab').forEach((t,i) => {
-    t.classList.toggle('active', (i===0 && tab==='student') || (i===1 && tab==='admin'));
-  });
-  document.getElementById('studentSetupForm').style.display = tab==='student' ? 'flex' : 'none';
-  document.getElementById('adminSetupForm').style.display   = tab==='admin'   ? 'flex' : 'none';
-}
-
-async function enterStudent() {
-  const name = document.getElementById('studentNameInput').value.trim();
-  if (!name) { document.getElementById('studentSetupError').textContent = 'Please enter your name.'; return; }
-  if (!fbReady()) { showConfigBanner(); return; }
-  await loadConfig();
-  currentUser = name;
-  isAdmin = false;
-  showStudentApp();
-}
-
-async function enterAdmin() {
-  const pwd = document.getElementById('adminPasswordInput').value;
-  if (!fbReady()) { showConfigBanner(); return; }
-  await loadConfig();
-  if (pwd !== ADMIN_PASSWORD) {
-    document.getElementById('adminSetupError').textContent = 'Incorrect password.';
-    document.getElementById('adminPasswordInput').value = '';
-    return;
-  }
-  currentUser = 'Instructor';
-  isAdmin = true;
-  showAdminApp();
-}
-
-function signOut() {
-  unsubscribes.forEach(u => u());
-  unsubscribes = [];
-  submittedCards.clear();
-  allResponses = {};
-  currentUser = null;
-  isAdmin = false;
-  document.getElementById('setupScreen').style.display = 'flex';
-  document.getElementById('appNav').classList.remove('visible');
-  document.getElementById('studentApp').classList.remove('visible');
-  document.getElementById('adminApp').classList.remove('visible');
-  document.getElementById('adminPasswordInput').value = '';
-  document.getElementById('studentNameInput').value = '';
-  document.getElementById('studentSetupError').textContent = '';
-  document.getElementById('adminSetupError').textContent = '';
-}
-
-function showConfigBanner() {
-  document.getElementById('configBanner').style.display = 'block';
-}
-
 // ════════════════════════════════════════════════════════
 //  STUDENT APP
 // ════════════════════════════════════════════════════════
@@ -1183,6 +1084,25 @@ function updateStudentProgress() {
   document.getElementById('progressLabel').textContent = `${done} of ${total} presentations reviewed`;
   document.getElementById('progressPct').textContent   = `${pct}%`;
   document.getElementById('progressFill').style.width  = pct + '%';
+  // update min bar
+  const minBar = document.getElementById('minBar');
+  const minCount = document.getElementById('minBarCount');
+  const minText = document.getElementById('minBarText');
+  if (minBar) {
+    if (done >= 5) {
+      minBar.style.background = '#1a3a1a';
+      minCount.style.color = '#6fcf6f';
+      minCount.textContent = `✓ ${done} reviewed — minimum met!`;
+      minText.innerHTML = done >= total
+        ? '<strong style="color:#6fcf6f">All ' + total + ' presentations reviewed!</strong>'
+        : `<span style="color:#aaa">Nice work! You can keep going or you're done.</span>`;
+    } else {
+      minBar.style.background = 'var(--ink)';
+      minCount.style.color = 'var(--sun)';
+      minCount.textContent = `${done} / 5 minimum`;
+      minText.innerHTML = `Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.`;
+    }
+  }
 }
 
 // ── Live subscription ──
