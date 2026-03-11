@@ -558,93 +558,111 @@ async function doClear(){
 function exportPDF(){
   if(!window.jspdf){alert('PDF library not loaded yet, please try again.');return}
   var jsPDF=window.jspdf.jsPDF;
-  var doc=new jsPDF({unit:'pt',format:'letter'});
-  var PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight();
-  var mg=52,cw=PW-mg*2,y=0;
+  var doc=new jsPDF({unit:'mm',format:'letter'});
 
-  function newPage(){doc.addPage();y=mg;footer()}
-  function chkY(n){if(y+n>PH-52)newPage()}
-  function footer(){
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(160,140,100);
-    doc.text(user+' · Peer Review Notes',mg,PH-28);
-    doc.text(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),PW-mg,PH-28,{align:'right'});
+  // Letter = 215.9mm x 279.4mm
+  var PW=215.9, PH=279.4;
+  var left=20, right=20, top=20;
+  var usableW=PW-left-right;  // 175.9mm — safe text width
+  var y=top;
+  var lineH=6;
+
+  function chkY(need){
+    if(y+need>PH-15){doc.addPage();y=top;}
   }
 
-  // Header
-  doc.setFillColor(30,18,6);doc.rect(0,0,PW,110,'F');
-  doc.setFillColor(232,98,10);doc.rect(0,0,6,110,'F');
-  doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(245,166,35);
-  doc.text('REALITY IN A DIGITAL AGE — PEER REVIEW NOTES',mg,38);
-  doc.setFont('helvetica','bold');doc.setFontSize(24);doc.setTextColor(255,252,244);
-  doc.text('Peer Review Notes',mg,68);
-  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(180,160,120);
-  doc.text(user+'   ·   '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),mg,92);
-  y=134;
+  function writeLine(txt,size,style,color){
+    doc.setFont('helvetica',style||'normal');
+    doc.setFontSize(size||10);
+    doc.setTextColor(color||'#000000');
+    var lines=doc.splitTextToSize(txt,usableW);
+    chkY(lines.length*(lineH+1)+4);
+    doc.text(lines,left,y);
+    y+=lines.length*(lineH+1)+2;
+  }
 
-  // Each submitted presentation
+  function rule(){
+    chkY(4);
+    doc.setDrawColor(220,200,150);
+    doc.line(left,y,PW-right,y);
+    y+=4;
+  }
+
+  // ── HEADER ──
+  doc.setFillColor(30,18,6);
+  doc.rect(0,0,PW,28,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.setTextColor(245,166,35);
+  doc.text('Peer Review Notes',left,18);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(200,180,140);
+  doc.text('Reality in a Digital Age',left+72,18);
+  y=36;
+
+  // Student name + date
+  writeLine(user+'   ·   '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),9,'normal','#8a6a3a');
+  y+=4;
+  rule();
+
+  // ── EACH PRESENTATION ──
   pres.forEach(function(title,i){
     if(!done.has(i))return;
-    var b1t=($id('s1-'+i)||{}).value||'';
-    var b1=($id('t1-'+i)||{}).value||'(no response)';
-    var b2t=($id('s2-'+i)||{}).value||'';
-    var b2=($id('t2-'+i)||{}).value||'(no response)';
-    chkY(80);
 
-    // Presentation header bar
-    doc.setFillColor(30,18,6);doc.roundedRect(mg,y,cw,40,4,4,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(240,192,64);
-    doc.text(pad(i+1),mg+14,y+26);
-    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(255,252,244);
-    doc.text(title,mg+48,y+16);
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(150,130,90);
-    doc.text('Presentation '+(i+1),mg+48,y+30);
-    y+=52;
+    var b1t=($id('s1-'+i)||{}).value||'Positive Observation';
+    var b1 =($id('t1-'+i)||{}).value||'(no response)';
+    var b2t=($id('s2-'+i)||{}).value||'Constructive Suggestion';
+    var b2 =($id('t2-'+i)||{}).value||'(no response)';
 
-    // text starts at this x; wrap width = right edge minus txtX minus right inner padding
-    var txtX=mg+30, txtW=PW-mg-30-20, lineH=16;
+    chkY(40);
 
-    // Bullet 1 - positive
-    // set font BEFORE splitTextToSize so measurement is correct
-    doc.setFont('helvetica','normal');doc.setFontSize(11);
-    var lines1=doc.splitTextToSize(b1,txtW);
-    doc.setFont('helvetica','bold');doc.setFontSize(7);
-    var tag1=doc.splitTextToSize((b1t||'Positive Observation').toUpperCase(),txtW);
-    var h1=Math.max(52, 12 + tag1.length*10 + 8 + lines1.length*lineH + 12);
-    chkY(h1+10);
-    doc.setFillColor(255,248,220);doc.setDrawColor(240,216,120);doc.roundedRect(mg,y,cw,h1,4,4,'FD');
-    doc.setFillColor(245,166,35);doc.circle(mg+16,y+18,4,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(180,130,40);
-    doc.text(tag1,txtX,y+20);
-    doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(30,18,6);
-    doc.text(lines1,txtX,y+20+tag1.length*10+8);
-    y+=h1+8;
+    // Presentation title bar
+    doc.setFillColor(30,18,6);
+    doc.rect(left-2,y-4,usableW+4,10,'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.setTextColor(240,192,64);
+    doc.text(pad(i+1)+'.  '+title,left,y+3);
+    y+=12;
 
-    // Bullet 2 - constructive
-    doc.setFont('helvetica','normal');doc.setFontSize(11);
-    var lines2=doc.splitTextToSize(b2,txtW);
-    doc.setFont('helvetica','bold');doc.setFontSize(7);
-    var tag2=doc.splitTextToSize((b2t||'Constructive Suggestion').toUpperCase(),txtW);
-    var h2=Math.max(52, 12 + tag2.length*10 + 8 + lines2.length*lineH + 12);
-    chkY(h2+10);
-    doc.setFillColor(255,242,230);doc.setDrawColor(232,120,10);doc.roundedRect(mg,y,cw,h2,4,4,'FD');
-    doc.setFillColor(232,98,10);doc.circle(mg+16,y+18,4,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(180,80,20);
-    doc.text(tag2,txtX,y+20);
-    doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(30,18,6);
-    doc.text(lines2,txtX,y+20+tag2.length*10+8);
-    y+=h2+16;
+    // Bullet 1
+    writeLine(b1t.toUpperCase(),7,'bold','#b07820');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    doc.setTextColor('#1e1206');
+    var b1lines=doc.splitTextToSize(b1,usableW-4);
+    chkY(b1lines.length*(lineH+1)+4);
+    doc.text(b1lines,left+3,y);
+    y+=b1lines.length*(lineH+1)+5;
+
+    // Bullet 2
+    writeLine(b2t.toUpperCase(),7,'bold','#b04010');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    doc.setTextColor('#1e1206');
+    var b2lines=doc.splitTextToSize(b2,usableW-4);
+    chkY(b2lines.length*(lineH+1)+4);
+    doc.text(b2lines,left+3,y);
+    y+=b2lines.length*(lineH+1)+5;
+
+    rule();
   });
 
-  // Page numbers
+  // page numbers
   var total=doc.internal.getNumberOfPages();
   for(var p=1;p<=total;p++){
     doc.setPage(p);
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(160,140,100);
-    if(p>1)footer();
-    doc.text('Page '+p+' of '+total,PW/2,PH-28,{align:'center'});
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(160,140,100);
+    doc.text('Page '+p+' of '+total,PW/2,PH-6,{align:'center'});
+    doc.text(user+' · Peer Review Notes',left,PH-6);
   }
+
   doc.save(user.replace(/\s+/g,'_')+'_Peer_Review.pdf');
 }
+
 
 function doExport(){
   var rows=[['Student','Presentation','Positive Type','Positive Response','Constructive Type','Constructive Response','Time']];
