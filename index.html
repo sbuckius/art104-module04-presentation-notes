@@ -5,1391 +5,553 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Peer Review — Reality in a Digital Age</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, setDoc, deleteDoc, getDocs }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCcTksAfQ4BQ3BbZ-_D-XLtP5g85JukeN8",
-    authDomain: "art104-module04-present-notes.firebaseapp.com",
-    projectId: "art104-module04-present-notes",
-    storageBucket: "art104-module04-present-notes.firebasestorage.app",
-    messagingSenderId: "16838721531",
-    appId: "1:16838721531:web:edaaa49e4cebf6b5cf955e",
-    measurementId: "G-X8YYWBW7W8"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-
-  window._db = db;
-  window._fbReady = true;
-  window._collection = collection;
-  window._addDoc = addDoc;
-  window._onSnapshot = onSnapshot;
-  window._query = query;
-  window._orderBy = orderBy;
-  window._serverTimestamp = serverTimestamp;
-  window._doc = doc;
-  window._setDoc = setDoc;
-  window._deleteDoc = deleteDoc;
-  window._getDocs = getDocs;
-
-  document.dispatchEvent(new Event('firebase-ready'));
-</script>
-
 <style>
-:root {
-  --sun:    #f5a623;
-  --flame:  #e8620a;
-  --amber:  #f0c040;
-  --cream:  #fdf8ee;
-  --paper:  #fffcf4;
-  --ink:    #1e1206;
-  --muted:  #8a6a3a;
-  --border: #f0d898;
-  --warm:   #fef3d0;
-  --glow:   rgba(245,166,35,0.18);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 300;
-  min-height: 100vh;
-}
-
-/* ── SETUP SCREEN ── */
-#setupScreen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ink);
-  position: relative;
-  overflow: hidden;
-}
-#setupScreen::before {
-  content: '';
-  position: absolute;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--sun) 0%, transparent 70%);
-  opacity: 0.12;
-  top: -200px; right: -100px;
-}
-#setupScreen::after {
-  content: '';
-  position: absolute;
-  width: 400px; height: 400px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--amber) 0%, transparent 70%);
-  opacity: 0.08;
-  bottom: -150px; left: -80px;
-}
-.setup-card {
-  background: var(--paper);
-  border-radius: 20px;
-  padding: 52px 56px;
-  width: 100%;
-  max-width: 480px;
-  position: relative;
-  z-index: 1;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
-}
-.setup-eyebrow {
-  font-size: 10px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--sun);
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-.setup-card h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 48px;
-  letter-spacing: 2px;
-  line-height: 1;
-  color: var(--ink);
-  margin-bottom: 8px;
-}
-.setup-card h1 span { color: var(--sun); }
-.setup-sub {
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 36px;
-  line-height: 1.6;
-}
-.setup-tabs {
-  display: flex;
-  gap: 0;
-  margin-bottom: 28px;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.setup-tab {
-  flex: 1;
-  padding: 12px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--muted);
-  transition: all 0.2s;
-}
-.setup-tab.active {
-  background: var(--sun);
-  color: var(--ink);
-}
-.setup-form { display: flex; flex-direction: column; gap: 16px; }
-.setup-label {
-  font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-  display: block;
-  font-weight: 500;
-}
-.setup-input {
-  width: 100%;
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  color: var(--ink);
-  background: var(--warm);
-  outline: none;
-  transition: border-color 0.2s;
-}
-.setup-input:focus { border-color: var(--sun); background: white; }
-.btn-enter {
-  background: var(--sun);
-  border: none;
-  color: var(--ink);
-  padding: 16px;
-  border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  margin-top: 4px;
-}
-.btn-enter:hover { background: var(--flame); color: white; }
-.btn-enter:active { transform: scale(0.98); }
-.setup-error {
-  font-size: 12px;
-  color: var(--flame);
-  text-align: center;
-  min-height: 18px;
-}
-
-/* ── TOP NAV ── */
-#appNav {
-  display: none;
-  background: var(--ink);
-  padding: 14px 40px;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-#appNav.visible { display: flex; }
-.nav-brand {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
-  letter-spacing: 2px;
-  color: var(--amber);
-}
-.nav-user {
-  font-size: 13px;
-  color: #aaa;
-}
-.nav-user strong { color: var(--sun); }
-.btn-signout {
-  background: none;
-  border: 1px solid #444;
-  color: #888;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s;
-}
-.btn-signout:hover { border-color: var(--sun); color: var(--sun); }
-
-/* ── MAIN APP ── */
-#studentApp { display: none; }
-#studentApp.visible { display: block; }
-
-main {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 40px 24px 120px;
-}
-
-/* ── PAGE HEADER ── */
-.page-header {
-  margin-bottom: 40px;
-  padding-bottom: 28px;
-  border-bottom: 2px solid var(--border);
-}
-.page-eyebrow {
-  font-size: 10px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--sun);
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-.page-header h2 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 42px;
-  letter-spacing: 2px;
-  line-height: 1;
-  color: var(--ink);
-}
-.page-header h2 em {
-  font-family: 'Instrument Serif', serif;
-  font-style: italic;
-  color: var(--flame);
-}
-.page-desc {
-  margin-top: 10px;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-/* ── PROGRESS ── */
-.progress-wrap { margin-bottom: 36px; }
-.progress-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.progress-track {
-  height: 5px;
-  background: var(--border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--flame), var(--amber));
-  border-radius: 99px;
-  transition: width 0.5s ease;
-}
-
-/* ── PRESENTATION CARD ── */
-.pres-card {
-  background: white;
-  border: 2px solid var(--border);
-  border-radius: 16px;
-  margin-bottom: 24px;
-  overflow: hidden;
-  transition: box-shadow 0.3s;
-}
-.pres-card:hover { box-shadow: 0 6px 28px var(--glow); }
-.pres-card.submitted { border-color: var(--sun); }
-
-.pres-header {
-  background: var(--ink);
-  padding: 18px 28px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  user-select: none;
-}
-.pres-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 38px;
-  color: var(--amber);
-  opacity: 0.5;
-  line-height: 1;
-  min-width: 38px;
-}
-.pres-title-wrap { flex: 1; }
-.pres-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #666; margin-bottom: 3px; }
-.pres-title { font-family: 'Instrument Serif', serif; font-size: 19px; color: white; }
-.pres-badge {
-  font-size: 11px;
-  padding: 4px 12px;
-  border-radius: 99px;
-  border: 1px solid #444;
-  color: #666;
-  white-space: nowrap;
-  transition: all 0.3s;
-}
-.pres-badge.done { border-color: var(--sun); color: var(--sun); background: rgba(245,166,35,0.1); }
-.chevron { font-size: 16px; color: #555; transition: transform 0.3s; margin-left: 8px; }
-
-.pres-body { display: none; padding: 28px 32px; }
-.pres-body.open { display: block; }
-
-/* ── BULLET INPUTS ── */
-.bullet-section { margin-bottom: 22px; }
-.bullet-section-label {
-  font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 500;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.bullet-section-label::before {
-  content: '';
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.bullet-section-label.positive::before { background: var(--sun); }
-.bullet-section-label.constructive::before { background: var(--flame); }
-
-.bullet-row { display: flex; gap: 12px; align-items: flex-start; }
-.bullet-select {
-  flex-shrink: 0;
-  width: 220px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
-  color: var(--muted);
-  background: var(--warm);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  transition: border-color 0.2s;
-}
-.bullet-select:focus { border-color: var(--sun); }
-.bullet-textarea {
-  flex: 1;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  color: var(--ink);
-  background: var(--warm);
-  outline: none;
-  resize: vertical;
-  min-height: 48px;
-  line-height: 1.5;
-  transition: border-color 0.2s, background 0.2s;
-}
-.bullet-textarea:focus { border-color: var(--sun); background: white; }
-
-.card-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
-.btn-submit-card {
-  background: var(--sun);
-  color: var(--ink);
-  border: none;
-  padding: 12px 28px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-}
-.btn-submit-card:hover { background: var(--flame); color: white; }
-.btn-submit-card:active { transform: scale(0.98); }
-.btn-submitted {
-  background: var(--warm);
-  color: var(--sun);
-  border: 2px solid var(--sun);
-  padding: 12px 28px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: default;
-}
-
-/* ── LIVE RESPONSES PANEL ── */
-.live-section {
-  margin-top: 20px;
-  border-top: 2px dashed var(--border);
-  padding-top: 18px;
-}
-.live-label {
-  font-size: 10px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--sun);
-  font-weight: 500;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.live-dot {
-  width: 7px; height: 7px;
-  background: var(--sun);
-  border-radius: 50%;
-  animation: pulse 1.4s infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.7); }
-}
-.live-responses-list { display: flex; flex-direction: column; gap: 10px; }
-.live-response-item {
-  background: var(--warm);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  animation: fadeSlide 0.4s ease;
-}
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.live-resp-author {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--flame);
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-}
-.live-resp-bullet {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  margin-bottom: 6px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.live-resp-bullet:last-child { margin-bottom: 0; }
-.live-resp-tag {
-  flex-shrink: 0;
-  font-size: 9px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-  margin-top: 2px;
-}
-.tag-positive { background: var(--amber); color: var(--ink); }
-.tag-constructive { background: var(--flame); color: white; }
-.live-resp-text { color: var(--ink); }
-.live-empty {
-  font-size: 13px;
-  color: var(--muted);
-  font-style: italic;
-  padding: 8px 0;
-}
-
-/* ── FIREBASE CONFIG BANNER ── */
-.config-banner {
-  background: var(--flame);
-  color: white;
-  padding: 12px 24px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 500;
-}
-.config-banner a { color: var(--amber); }
-
-/* ══════════════════════════════════════════════
-   ADMIN DASHBOARD
-══════════════════════════════════════════════ */
-#adminApp { display: none; }
-#adminApp.visible { display: block; }
-
-.admin-header {
-  background: var(--ink);
-  padding: 28px 48px;
-  position: relative;
-  overflow: hidden;
-}
-.admin-header::before {
-  content: '';
-  position: absolute;
-  top: -80px; right: -80px;
-  width: 300px; height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--sun) 0%, transparent 70%);
-  opacity: 0.1;
-}
-.admin-eyebrow {
-  font-size: 9px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--sun);
-  margin-bottom: 8px;
-}
-.admin-header h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 40px;
-  letter-spacing: 2px;
-  color: white;
-}
-.admin-header h1 span { color: var(--amber); }
-.admin-stats {
-  display: flex;
-  gap: 28px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-.admin-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.admin-stat-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 32px;
-  color: var(--amber);
-  line-height: 1;
-}
-.admin-stat-label { font-size: 11px; color: #888; letter-spacing: 1px; }
-
-.admin-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 24px 80px;
-}
-
-/* Admin tabs */
-.admin-tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 32px;
-  border-bottom: 2px solid var(--border);
-  padding-bottom: 0;
-}
-.admin-tab-btn {
-  padding: 10px 22px;
-  background: none;
-  border: none;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  transition: all 0.2s;
-}
-.admin-tab-btn.active { color: var(--flame); border-bottom-color: var(--flame); }
-
-/* Admin grid */
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-.admin-pres-card {
-  background: white;
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-}
-.admin-pres-head {
-  background: var(--warm);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 2px solid var(--border);
-}
-.admin-pres-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
-  color: var(--sun);
-  line-height: 1;
-}
-.admin-pres-title {
-  font-family: 'Instrument Serif', serif;
-  font-size: 16px;
-  color: var(--ink);
-  flex: 1;
-}
-.admin-resp-count {
-  font-size: 11px;
-  background: var(--sun);
-  color: var(--ink);
-  padding: 3px 10px;
-  border-radius: 99px;
-  font-weight: 500;
-}
-.admin-pres-body { padding: 14px; max-height: 360px; overflow-y: auto; }
-.admin-resp-item {
-  border-bottom: 1px solid var(--border);
-  padding: 10px 0;
-}
-.admin-resp-item:last-child { border-bottom: none; }
-.admin-resp-name {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--flame);
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-}
-.admin-bullet-line {
-  display: flex;
-  gap: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  margin-bottom: 4px;
-  align-items: flex-start;
-}
-.admin-bullet-line:last-child { margin-bottom: 0; }
-.admin-tag {
-  flex-shrink: 0;
-  font-size: 8px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: 500;
-  margin-top: 2px;
-}
-.admin-empty { font-size: 12px; color: var(--muted); font-style: italic; padding: 8px 0; }
-
-/* All responses view */
-.all-responses-wrap { display: flex; flex-direction: column; gap: 12px; }
-.all-resp-row {
-  background: white;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 22px;
-  display: grid;
-  grid-template-columns: 140px 1fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
-.all-resp-meta { display: flex; flex-direction: column; gap: 4px; }
-.all-resp-author { font-size: 13px; font-weight: 500; color: var(--flame); }
-.all-resp-pres { font-size: 11px; color: var(--muted); }
-.all-resp-time { font-size: 10px; color: #bbb; }
-
-/* Admin controls */
-.admin-controls {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.admin-search {
-  flex: 1;
-  min-width: 200px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  background: var(--warm);
-  color: var(--ink);
-  outline: none;
-}
-.admin-search:focus { border-color: var(--sun); }
-.btn-admin-action {
-  background: var(--warm);
-  border: 2px solid var(--border);
-  color: var(--ink);
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.btn-admin-action:hover { border-color: var(--sun); background: var(--amber); }
-.btn-danger {
-  border-color: #ffccaa;
-  color: var(--flame);
-}
-.btn-danger:hover { background: var(--flame); color: white; border-color: var(--flame); }
-
-/* Edit presentations */
-.edit-pres-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-.edit-pres-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.edit-pres-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
-  color: var(--sun);
-  min-width: 28px;
-}
-.edit-pres-input {
-  flex: 1;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  color: var(--ink);
-  background: var(--warm);
-  outline: none;
-}
-.edit-pres-input:focus { border-color: var(--sun); background: white; }
-.btn-remove-pres {
-  background: none;
-  border: 1px solid var(--border);
-  color: #bbb;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
-}
-.btn-remove-pres:hover { border-color: var(--flame); color: var(--flame); }
-.admin-form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-.btn-primary {
-  background: var(--sun);
-  border: none;
-  color: var(--ink);
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-primary:hover { background: var(--flame); color: white; }
-.btn-secondary {
-  background: var(--warm);
-  border: 2px solid var(--border);
-  color: var(--muted);
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-secondary:hover { border-color: var(--sun); }
-
-/* Password change */
-.pwd-form { display: flex; flex-direction: column; gap: 14px; max-width: 360px; }
-
-/* Responsive */
-@media (max-width: 640px) {
-  .setup-card { padding: 36px 28px; }
-  .admin-header { padding: 24px 20px; }
-  .admin-main { padding: 28px 16px 60px; }
-  main { padding: 28px 16px 60px; }
-  .all-resp-row { grid-template-columns: 1fr; }
-  .bullet-row { flex-direction: column; }
-  .bullet-select { width: 100%; }
-  #appNav { padding: 12px 20px; }
+:root{--sun:#f5a623;--flame:#e8620a;--amber:#f0c040;--paper:#fffcf4;--ink:#1e1206;--muted:#8a6a3a;--border:#f0d898;--warm:#fef3d0;--glow:rgba(245,166,35,.18)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh}
+.screen{display:none}
+.screen.active{display:block}
+#setupScreen.active{display:flex;min-height:100vh;align-items:center;justify-content:center;background:var(--ink);position:relative;overflow:hidden}
+#setupScreen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0%,transparent 70%);opacity:.12;top:-200px;right:-100px}
+#setupScreen::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,var(--amber) 0%,transparent 70%);opacity:.08;bottom:-150px;left:-80px}
+.setup-card{background:var(--paper);border-radius:20px;padding:52px 56px;width:100%;max-width:480px;position:relative;z-index:1;box-shadow:0 32px 80px rgba(0,0,0,.4)}
+.eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--sun);margin-bottom:12px;font-weight:500}
+.setup-card h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:2px;line-height:1;color:var(--ink);margin-bottom:8px}
+.setup-card h1 span{color:var(--sun)}
+.setup-sub{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.tabs{display:flex;margin-bottom:28px;border:2px solid var(--border);border-radius:10px;overflow:hidden}
+.tab-btn{flex:1;padding:12px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;background:transparent;border:none;font-family:'DM Sans',sans-serif;color:var(--muted);transition:all .2s}
+.tab-btn.active{background:var(--sun);color:var(--ink)}
+.form-group{margin-bottom:16px}
+.field-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block;font-weight:500}
+.field-input{width:100%;border:2px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);background:var(--warm);outline:none;transition:border-color .2s}
+.field-input:focus{border-color:var(--sun);background:white}
+.btn-enter{width:100%;background:var(--sun);border:none;color:var(--ink);padding:16px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s;margin-top:8px}
+.btn-enter:hover{background:var(--flame);color:white}
+.err{font-size:12px;color:var(--flame);min-height:18px;margin-bottom:8px}
+#appNav{display:none;background:var(--ink);padding:14px 40px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+#appNav.on{display:flex}
+.nav-brand{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--amber)}
+.nav-meta{font-size:13px;color:#aaa}
+.nav-meta strong{color:var(--sun)}
+.btn-nav{background:none;border:1px solid #444;color:#888;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.btn-nav:hover{border-color:var(--sun);color:var(--sun)}
+main{max-width:860px;margin:0 auto;padding:40px 24px 140px}
+.page-head{margin-bottom:36px;padding-bottom:24px;border-bottom:2px solid var(--border)}
+.page-head h2{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;line-height:1}
+.page-head h2 em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--flame)}
+.page-sub{margin-top:10px;font-size:14px;color:var(--muted);line-height:1.6}
+.prog-wrap{margin-bottom:32px}
+.prog-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+.prog-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--flame),var(--amber));border-radius:99px;transition:width .5s ease}
+.pres-card{background:white;border:2px solid var(--border);border-radius:16px;margin-bottom:20px;overflow:hidden;transition:box-shadow .3s}
+.pres-card:hover{box-shadow:0 6px 28px var(--glow)}
+.pres-card.done-card{border-color:var(--sun)}
+.pres-head{background:var(--ink);padding:18px 28px;display:flex;align-items:center;gap:16px;cursor:pointer;user-select:none}
+.pres-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--amber);opacity:.5;line-height:1;min-width:36px}
+.pres-meta{flex:1}
+.pres-sub{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#666;margin-bottom:3px}
+.pres-title{font-family:'Instrument Serif',serif;font-size:18px;color:white}
+.badge{font-size:11px;padding:4px 12px;border-radius:99px;border:1px solid #444;color:#666;white-space:nowrap;transition:all .3s}
+.badge.ok{border-color:var(--sun);color:var(--sun);background:rgba(245,166,35,.1)}
+.chev{font-size:16px;color:#555;margin-left:8px}
+.pres-body{display:none;padding:28px 32px}
+.pres-body.open{display:block}
+.section{margin-bottom:20px}
+.section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-label::before{content:'';width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.section-label.pos::before{background:var(--sun)}
+.section-label.con::before{background:var(--flame)}
+.bullet-row{display:flex;gap:12px;align-items:flex-start}
+.bselect{flex-shrink:0;width:210px;border:2px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);background:var(--warm);outline:none;cursor:pointer;appearance:none;transition:border-color .2s}
+.bselect:focus{border-color:var(--sun)}
+.btextarea{flex:1;border:2px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none;resize:vertical;min-height:48px;line-height:1.5;transition:border-color .2s}
+.btextarea:focus{border-color:var(--sun);background:white}
+.card-actions{display:flex;justify-content:flex-end;margin-top:18px}
+.btn-submit{background:var(--sun);color:var(--ink);border:none;padding:12px 28px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-submit:hover{background:var(--flame);color:white}
+.done-label{background:var(--warm);color:var(--sun);border:2px solid var(--sun);padding:12px 28px;border-radius:8px;font-size:13px;font-weight:500}
+.live-sec{margin-top:20px;border-top:2px dashed var(--border);padding-top:16px}
+.live-lbl{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--sun);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.live-dot{width:7px;height:7px;background:var(--sun);border-radius:50%;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.live-list{display:flex;flex-direction:column;gap:10px}
+.live-item{background:var(--warm);border:1px solid var(--border);border-radius:10px;padding:14px 16px;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.live-author{font-size:11px;font-weight:500;color:var(--flame);letter-spacing:1px;margin-bottom:8px}
+.live-bullet{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px;font-size:13px;line-height:1.5}
+.live-bullet:last-child{margin-bottom:0}
+.ltag{flex-shrink:0;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:4px;font-weight:500;margin-top:2px}
+.tp{background:var(--amber);color:var(--ink)}
+.tc{background:var(--flame);color:white}
+.live-empty{font-size:13px;color:var(--muted);font-style:italic}
+#minBar{position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:white;padding:14px 32px;display:none;align-items:center;justify-content:space-between;z-index:200;box-shadow:0 -4px 24px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif;font-size:13px;gap:16px;flex-wrap:wrap;transition:background .4s}
+#minBar.on{display:flex}
+#minCount{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--sun);white-space:nowrap}
+.admin-hdr{background:var(--ink);padding:32px 48px;position:relative;overflow:hidden}
+.admin-hdr::before{content:'';position:absolute;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,var(--sun) 0%,transparent 70%);opacity:.1}
+.admin-hdr h1{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:2px;color:white}
+.admin-hdr h1 span{color:var(--amber)}
+.stats{display:flex;gap:32px;margin-top:16px;flex-wrap:wrap}
+.snum{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--amber);line-height:1}
+.slbl{font-size:11px;color:#888;letter-spacing:1px}
+.admin-main{max-width:1100px;margin:0 auto;padding:36px 24px 80px}
+.atabs{display:flex;gap:4px;margin-bottom:28px;border-bottom:2px solid var(--border)}
+.atab{padding:10px 22px;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s}
+.atab.active{color:var(--flame);border-bottom-color:var(--flame)}
+.controls{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.asearch{flex:1;min-width:200px;border:2px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--warm);color:var(--ink);outline:none}
+.asearch:focus{border-color:var(--sun)}
+.btn-a{background:var(--warm);border:2px solid var(--border);color:var(--ink);padding:10px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-a:hover{border-color:var(--sun);background:var(--amber)}
+.btn-d{border-color:#ffccaa;color:var(--flame)}
+.btn-d:hover{background:var(--flame);color:white;border-color:var(--flame)}
+.btn-p{background:var(--sun);border:none;color:var(--ink);padding:11px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-p:hover{background:var(--flame);color:white}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.acard{background:white;border:2px solid var(--border);border-radius:14px;overflow:hidden}
+.acard-h{background:var(--warm);padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--border)}
+.acard-n{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--sun);line-height:1}
+.acard-t{font-family:'Instrument Serif',serif;font-size:15px;color:var(--ink);flex:1}
+.acnt{font-size:11px;background:var(--sun);color:var(--ink);padding:3px 10px;border-radius:99px;font-weight:500}
+.acard-b{padding:14px;max-height:340px;overflow-y:auto}
+.aresp{border-bottom:1px solid var(--border);padding:10px 0}
+.aresp:last-child{border-bottom:none}
+.aname{font-size:11px;font-weight:500;color:var(--flame);letter-spacing:1px;margin-bottom:6px}
+.abullet{display:flex;gap:8px;font-size:12px;line-height:1.5;margin-bottom:4px;align-items:flex-start}
+.atag{flex-shrink:0;font-size:8px;letter-spacing:.5px;text-transform:uppercase;padding:2px 6px;border-radius:3px;font-weight:500;margin-top:2px}
+.aempty{font-size:12px;color:var(--muted);font-style:italic;padding:8px 0}
+.allrow{background:white;border:2px solid var(--border);border-radius:12px;padding:18px 22px;display:grid;grid-template-columns:140px 1fr 1fr;gap:16px;align-items:start;margin-bottom:12px}
+.allauthor{font-size:13px;font-weight:500;color:var(--flame)}
+.allpres{font-size:11px;color:var(--muted)}
+.alltime{font-size:10px;color:#bbb}
+.clbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.clbl.p{color:var(--sun)}
+.clbl.c{color:var(--flame)}
+.ctype{font-size:11px;color:var(--muted);margin-bottom:4px}
+.ctext{font-size:13px}
+.set-sec{margin-bottom:36px}
+.set-sec h3{font-family:'Instrument Serif',serif;font-size:22px;color:var(--ink);margin-bottom:16px}
+.erow{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.enum{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--sun);min-width:26px}
+.einput{flex:1;border:2px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none}
+.einput:focus{border-color:var(--sun);background:white}
+.btn-rm{background:none;border:1px solid var(--border);color:#bbb;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;transition:all .2s}
+.btn-rm:hover{border-color:var(--flame);color:var(--flame)}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.pwd-form{max-width:360px;display:flex;flex-direction:column;gap:14px}
+#pwdMsg{font-size:12px;min-height:16px}
+@media(max-width:640px){
+  .setup-card{padding:36px 24px}
+  .admin-hdr{padding:24px 20px}
+  .admin-main{padding:24px 16px 60px}
+  main{padding:28px 16px 140px}
+  .allrow{grid-template-columns:1fr}
+  .bullet-row{flex-direction:column}
+  .bselect{width:100%}
+  #appNav{padding:12px 20px}
 }
 </style>
 </head>
 <body>
 
-<!-- Config Banner (shown if Firebase not configured) -->
-<div class="config-banner" id="configBanner" style="display:none">
-  ⚠ Firebase not configured. Open the HTML file and add your Firebase config. 
-  <a href="https://console.firebase.google.com/" target="_blank">Get config →</a>
-</div>
-
-<!-- ── SETUP / LOGIN SCREEN ── -->
-<div id="setupScreen">
+<!-- SETUP -->
+<div id="setupScreen" class="screen active">
   <div class="setup-card">
-    <div class="setup-eyebrow">Reality in a Digital Age</div>
+    <div class="eyebrow">Reality in a Digital Age</div>
     <h1>Peer <span>Review</span><br>Notes</h1>
-    <p class="setup-sub">Enter your name to begin reviewing your classmates' presentations.</p>
-
-    <div class="setup-tabs">
-      <button class="setup-tab active" onclick="switchSetupTab('student')">Student</button>
-      <button class="setup-tab" onclick="switchSetupTab('admin')">Instructor</button>
+    <p class="setup-sub">Enter your name to begin, or sign in as an instructor.</p>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('s')">Student</button>
+      <button class="tab-btn" onclick="switchTab('a')">Instructor</button>
     </div>
-
-    <div class="setup-form" id="studentSetupForm">
-      <div>
-        <label class="setup-label">Your Name</label>
-        <input type="text" class="setup-input" id="studentNameInput" placeholder="First Last" onkeydown="if(event.key==='Enter')enterStudent()"/>
+    <div id="sForm">
+      <div class="form-group">
+        <label class="field-label">Your Name</label>
+        <input class="field-input" id="sName" type="text" placeholder="First Last" onkeydown="if(event.key==='Enter')goStudent()"/>
       </div>
-      <div id="studentSetupError" class="setup-error"></div>
-      <button class="btn-enter" onclick="enterStudent()">Begin Review →</button>
+      <div class="err" id="sErr"></div>
+      <button class="btn-enter" onclick="goStudent()">Begin Review →</button>
     </div>
-
-    <div class="setup-form" id="adminSetupForm" style="display:none">
-      <div>
-        <label class="setup-label">Admin Password</label>
-        <input type="password" class="setup-input" id="adminPasswordInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')enterAdmin()"/>
+    <div id="aForm" style="display:none">
+      <div class="form-group">
+        <label class="field-label">Admin Password</label>
+        <input class="field-input" id="aPwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')goAdmin()"/>
       </div>
-      <div id="adminSetupError" class="setup-error"></div>
-      <button class="btn-enter" onclick="enterAdmin()">Enter Dashboard →</button>
+      <div class="err" id="aErr"></div>
+      <button class="btn-enter" onclick="goAdmin()">Enter Dashboard →</button>
     </div>
   </div>
 </div>
 
-<!-- ── TOP NAV ── -->
+<!-- NAV -->
 <nav id="appNav">
   <div class="nav-brand">Peer Review</div>
-  <div style="display:flex;align-items:center;gap:16px">
-    <div class="nav-user">Reviewing as <strong id="navUserName"></strong></div>
-    <button class="btn-signout" onclick="signOut()">← Exit</button>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="nav-meta">Signed in as <strong id="navName"></strong></div>
+    <button class="btn-nav" onclick="signOut()">← Exit</button>
   </div>
 </nav>
 
-<!-- ── STUDENT APP ── -->
-<div id="studentApp">
+<!-- STUDENT -->
+<div id="studentApp" class="screen">
   <main>
-    <div class="page-header">
-      <div class="page-eyebrow">Reality in a Digital Age</div>
+    <div class="page-head">
+      <div class="eyebrow">Reality in a Digital Age</div>
       <h2>Peer <em>Review</em> Notes</h2>
-      <p class="page-desc">Review your classmates' presentations below. Write one positive observation and one constructive suggestion for each. <strong>You must review at least 5</strong> — feel free to review all 7.</p>
+      <p class="page-sub">Write one positive observation and one constructive suggestion for each presentation. <strong>Review at least 5</strong> — you're welcome to do all 7.</p>
     </div>
-
-    <div class="progress-wrap">
-      <div class="progress-meta">
-        <span id="progressLabel">0 of 7 presentations reviewed</span>
-        <span id="progressPct">0%</span>
-      </div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="prog-wrap">
+      <div class="prog-meta"><span id="progLbl">0 of 7 reviewed</span><span id="progPct">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
     </div>
-
     <div id="presContainer"></div>
   </main>
+  <div id="minBar">
+    <span id="minTxt" style="color:#aaa">Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.</span>
+    <span id="minCount">0 / 5 minimum</span>
+  </div>
 </div>
 
-  <!-- Minimum bar -->
-  <div id="minBar" style="
-    position:fixed; bottom:0; left:0; right:0;
-    background:var(--ink); color:white;
-    padding:14px 32px; display:flex; align-items:center; justify-content:space-between;
-    z-index:200; box-shadow:0 -4px 24px rgba(0,0,0,0.2);
-    font-family:'DM Sans',sans-serif; font-size:13px; gap:16px; flex-wrap:wrap;
-  ">
-    <span id="minBarText" style="color:#aaa">Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.</span>
-    <span id="minBarCount" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--sun)">0 / 5 minimum</span>
-  </div>
-
-<!-- ── ADMIN DASHBOARD ── -->
-<div id="adminApp">
-  <div class="admin-header">
-    <div class="admin-eyebrow">Instructor Dashboard — Reality in a Digital Age</div>
+<!-- ADMIN -->
+<div id="adminApp" class="screen">
+  <div class="admin-hdr">
+    <div class="eyebrow">Instructor Dashboard — Reality in a Digital Age</div>
     <h1>Peer Review <span>Live</span></h1>
-    <div class="admin-stats">
-      <div class="admin-stat">
-        <div class="admin-stat-num" id="statResponses">0</div>
-        <div class="admin-stat-label">Total Responses</div>
-      </div>
-      <div class="admin-stat">
-        <div class="admin-stat-num" id="statStudents">0</div>
-        <div class="admin-stat-label">Students</div>
-      </div>
-      <div class="admin-stat">
-        <div class="admin-stat-num" id="statPresentations">7</div>
-        <div class="admin-stat-label">Presentations</div>
-      </div>
+    <div class="stats">
+      <div><div class="snum" id="stTotal">0</div><div class="slbl">Responses</div></div>
+      <div><div class="snum" id="stStudents">0</div><div class="slbl">Students</div></div>
+      <div><div class="snum" id="stPres">7</div><div class="slbl">Presentations</div></div>
     </div>
   </div>
-
   <div class="admin-main">
-    <div class="admin-tabs">
-      <button class="admin-tab-btn active" onclick="switchAdminTab('byPresentation')">By Presentation</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('allResponses')">All Responses</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('settings')">Settings</button>
+    <div class="atabs">
+      <button class="atab active" onclick="aTab('byPres')">By Presentation</button>
+      <button class="atab" onclick="aTab('all')">All Responses</button>
+      <button class="atab" onclick="aTab('settings')">Settings</button>
     </div>
-
-    <!-- By Presentation -->
-    <div id="adminTab-byPresentation">
-      <div class="admin-controls">
-        <input type="text" class="admin-search" id="adminSearch" placeholder="Search responses…" oninput="renderAdminByPres()"/>
-        <button class="btn-admin-action" onclick="exportAdminCSV()">⬇ Export CSV</button>
+    <div id="tab-byPres">
+      <div class="controls">
+        <input class="asearch" id="srchPres" placeholder="Search…" oninput="renderByPres()"/>
+        <button class="btn-a" onclick="doExport()">⬇ Export CSV</button>
       </div>
-      <div class="admin-grid" id="adminGrid"></div>
+      <div class="agrid" id="agrid"></div>
     </div>
-
-    <!-- All Responses -->
-    <div id="adminTab-allResponses" style="display:none">
-      <div class="admin-controls">
-        <input type="text" class="admin-search" id="adminSearchAll" placeholder="Search by name or text…" oninput="renderAdminAll()"/>
-        <button class="btn-admin-action btn-danger" onclick="clearAllResponses()">🗑 Clear All</button>
+    <div id="tab-all" style="display:none">
+      <div class="controls">
+        <input class="asearch" id="srchAll" placeholder="Search by name or text…" oninput="renderAll()"/>
+        <button class="btn-a btn-d" onclick="doClear()">🗑 Clear All</button>
       </div>
-      <div class="all-responses-wrap" id="allResponsesWrap"></div>
+      <div id="allWrap"></div>
     </div>
-
-    <!-- Settings -->
-    <div id="adminTab-settings" style="display:none">
-      <h3 style="font-family:'Instrument Serif',serif;font-size:22px;margin-bottom:20px">Presentation Titles</h3>
-      <div class="edit-pres-list" id="editPresList"></div>
-      <div class="admin-form-actions">
-        <button class="btn-primary" onclick="savePresSettings()">Save Titles</button>
-        <button class="btn-secondary" onclick="addPresRow()">+ Add Presentation</button>
-      </div>
-
-      <h3 style="font-family:'Instrument Serif',serif;font-size:22px;margin:36px 0 16px">Change Admin Password</h3>
-      <div class="pwd-form">
-        <div>
-          <label class="setup-label">New Password</label>
-          <input type="password" class="setup-input" id="newPwdInput" placeholder="New password"/>
+    <div id="tab-settings" style="display:none">
+      <div class="set-sec">
+        <h3>Presentation Titles</h3>
+        <div id="editList"></div>
+        <div class="form-actions">
+          <button class="btn-p" onclick="saveTitles()">Save Titles</button>
+          <button class="btn-a" onclick="addRow()">+ Add</button>
         </div>
-        <div>
-          <label class="setup-label">Confirm Password</label>
-          <input type="password" class="setup-input" id="confirmPwdInput" placeholder="Confirm"/>
+      </div>
+      <div class="set-sec">
+        <h3>Change Password</h3>
+        <div class="pwd-form">
+          <div class="form-group"><label class="field-label">New Password</label><input class="field-input" id="p1" type="password" placeholder="New password"/></div>
+          <div class="form-group"><label class="field-label">Confirm</label><input class="field-input" id="p2" type="password" placeholder="Confirm"/></div>
+          <div id="pwdMsg"></div>
+          <button class="btn-p" onclick="doChangePwd()" style="width:fit-content">Update Password</button>
         </div>
-        <div id="pwdMsg" style="font-size:12px;min-height:16px"></div>
-        <button class="btn-primary" onclick="changePassword()" style="width:fit-content">Update Password</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- FIREBASE MODULE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy,
+         serverTimestamp, doc, setDoc, deleteDoc, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const cfg = {
+  apiKey:"AIzaSyCcTksAfQ4BQ3BbZ-_D-XLtP5g85JukeN8",
+  authDomain:"art104-module04-present-notes.firebaseapp.com",
+  projectId:"art104-module04-present-notes",
+  storageBucket:"art104-module04-present-notes.firebasestorage.app",
+  messagingSenderId:"16838721531",
+  appId:"1:16838721531:web:edaaa49e4cebf6b5cf955e",
+  measurementId:"G-X8YYWBW7W8"
+};
+const app = initializeApp(cfg);
+const db  = getFirestore(app);
+window._db=db; window._col=collection; window._add=addDoc; window._snap=onSnapshot;
+window._q=query; window._ord=orderBy; window._ts=serverTimestamp;
+window._doc=doc; window._set=setDoc; window._del=deleteDoc; window._get=getDocs;
+window._fbOK=true;
+document.dispatchEvent(new Event('fb-ready'));
+</script>
 
 <script>
-// ════════════════════════════════════════════════════════
-//  STUDENT APP
-// ════════════════════════════════════════════════════════
-function showStudentApp() {
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('appNav').classList.add('visible');
-  document.getElementById('studentApp').classList.add('visible');
-  document.getElementById('navUserName').textContent = currentUser;
-  renderPresCards();
-  subscribeToAll();
+// ── STATE ──────────────────────────────────────
+var user='', admin=false, adminPwd='teacher123';
+var pres=['Presentation 1','Presentation 2','Presentation 3','Presentation 4','Presentation 5','Presentation 6','Presentation 7'];
+var done=new Set(), live={}, kills=[];
+
+var POS=['Something that I loved about this project','Something that is working well','Something about the concept that is interesting','Something about the formal aspects of the work that I find interesting'];
+var CON=['A suggestion for the formal aspects of the work','A suggestion for the conceptual aspects of the work','An idea to push the project further','An idea to expand the project','A suggested revision to the project'];
+
+// ── HELPERS ────────────────────────────────────
+function x(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function pad(n){return String(n).padStart(2,'0')}
+function tag(t){var m={'Something that I loved about this project':'Loved','Something that is working well':'Working','Something about the concept that is interesting':'Concept','Something about the formal aspects of the work that I find interesting':'Formal','A suggestion for the formal aspects of the work':'Formal↑','A suggestion for the conceptual aspects of the work':'Concept↑','An idea to push the project further':'Push','An idea to expand the project':'Expand','A suggested revision to the project':'Revise'};return m[t]||(t?t.slice(0,8):'–')}
+function col(i){return window._col(window._db,'presentations/'+i+'/responses')}
+function cfgRef(){return window._doc(window._db,'config','app')}
+function $id(id){return document.getElementById(id)}
+
+// ── SCREENS ────────────────────────────────────
+function show(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});$id(id).classList.add('active')}
+
+// ── SETUP ──────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',(i===0&&t==='s')||(i===1&&t==='a'))});
+  $id('sForm').style.display=t==='s'?'block':'none';
+  $id('aForm').style.display=t==='a'?'block':'none';
 }
 
-function renderPresCards() {
-  const container = document.getElementById('presContainer');
-  container.innerHTML = '';
-  presentations.forEach((title, i) => {
-    container.appendChild(buildPresCard(i, title));
-  });
-  updateStudentProgress();
+async function loadCfg(){
+  try{
+    var snap=await window._get(window._col(window._db,'config'));
+    snap.forEach(function(d){if(d.id==='app'){var v=d.data();if(v.presentations&&v.presentations.length)pres=v.presentations;if(v.adminPassword)adminPwd=v.adminPassword;}});
+  }catch(e){console.warn('cfg:',e.message)}
 }
 
-function buildPresCard(i, title) {
-  const card = document.createElement('div');
-  card.className = 'pres-card';
-  card.id = `pres-card-${i}`;
-
-  card.innerHTML = `
-    <div class="pres-header" onclick="togglePresCard(${i})">
-      <div class="pres-num">${String(i+1).padStart(2,'0')}</div>
-      <div class="pres-title-wrap">
-        <div class="pres-eyebrow">Presentation ${i+1}</div>
-        <div class="pres-title">${title}</div>
-      </div>
-      <div class="pres-badge" id="badge-${i}">Not started</div>
-      <div class="chevron" id="chevron-${i}">▸</div>
-    </div>
-    <div class="pres-body" id="body-${i}">
-      <!-- Bullet 1: Positive -->
-      <div class="bullet-section">
-        <div class="bullet-section-label positive">Positive Observation</div>
-        <div class="bullet-row">
-          <select class="bullet-select" id="b1type-${i}">
-            <option value="">— Choose type —</option>
-            ${POSITIVE_OPTIONS.map(o=>`<option value="${o}">${o}</option>`).join('')}
-          </select>
-          <textarea class="bullet-textarea" id="b1text-${i}" placeholder="Write your observation…" rows="2"></textarea>
-        </div>
-      </div>
-      <!-- Bullet 2: Constructive -->
-      <div class="bullet-section">
-        <div class="bullet-section-label constructive">Constructive Suggestion</div>
-        <div class="bullet-row">
-          <select class="bullet-select" id="b2type-${i}">
-            <option value="">— Choose type —</option>
-            ${CONSTRUCTIVE_OPTIONS.map(o=>`<option value="${o}">${o}</option>`).join('')}
-          </select>
-          <textarea class="bullet-textarea" id="b2text-${i}" placeholder="Write your suggestion…" rows="2"></textarea>
-        </div>
-      </div>
-
-      <div class="card-actions" id="actions-${i}">
-        <button class="btn-submit-card" onclick="submitCard(${i})">Submit Review ✓</button>
-      </div>
-
-      <!-- Live responses -->
-      <div class="live-section">
-        <div class="live-label"><div class="live-dot"></div> Live Responses</div>
-        <div class="live-responses-list" id="live-list-${i}">
-          <div class="live-empty">No responses yet…</div>
-        </div>
-      </div>
-    </div>
-  `;
-  return card;
+async function goStudent(){
+  var n=$id('sName').value.trim();
+  if(!n){$id('sErr').textContent='Please enter your name.';return}
+  if(!window._fbOK){alert('Firebase loading, please wait…');return}
+  await loadCfg();
+  user=n;admin=false;
+  $id('navName').textContent=n;
+  $id('appNav').classList.add('on');
+  $id('minBar').classList.add('on');
+  show('studentApp');
+  buildCards();
+  subAll();
 }
 
-function togglePresCard(i) {
-  const body    = document.getElementById(`body-${i}`);
-  const chevron = document.getElementById(`chevron-${i}`);
-  const isOpen  = body.classList.contains('open');
-  document.querySelectorAll('.pres-body').forEach(b => b.classList.remove('open'));
-  document.querySelectorAll('.chevron').forEach(c => c.textContent = '▸');
-  if (!isOpen) { body.classList.add('open'); chevron.textContent = '▾'; }
+async function goAdmin(){
+  var p=$id('aPwd').value;
+  if(!window._fbOK){alert('Firebase loading, please wait…');return}
+  await loadCfg();
+  if(p!==adminPwd){$id('aErr').textContent='Incorrect password.';$id('aPwd').value='';return}
+  user='Instructor';admin=true;
+  $id('navName').textContent='Instructor';
+  $id('appNav').classList.add('on');
+  show('adminApp');
+  renderEditList();
+  subAll();
+  updateStats();
 }
 
-async function submitCard(i) {
-  const b1type = document.getElementById(`b1type-${i}`).value.trim();
-  const b1text = document.getElementById(`b1text-${i}`).value.trim();
-  const b2type = document.getElementById(`b2type-${i}`).value.trim();
-  const b2text = document.getElementById(`b2text-${i}`).value.trim();
-
-  if (!b1text || !b2text) { alert('Please fill in both bullet points before submitting.'); return; }
-
-  try {
-    await window._addDoc(responsesCol(i), {
-      name: currentUser,
-      b1type, b1text,
-      b2type, b2text,
-      ts: window._serverTimestamp(),
-    });
-    submittedCards.add(i);
-    document.getElementById(`pres-card-${i}`).classList.add('submitted');
-    document.getElementById(`badge-${i}`).textContent = '✓ Submitted';
-    document.getElementById(`badge-${i}`).classList.add('done');
-    document.getElementById(`actions-${i}`).innerHTML =
-      `<div class="btn-submitted">✓ Submitted</div>`;
-    // disable inputs
-    [`b1type-${i}`,`b1text-${i}`,`b2type-${i}`,`b2text-${i}`].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.disabled = true;
-    });
-    updateStudentProgress();
-    setTimeout(() => { if (i+1 < presentations.length) togglePresCard(i+1); }, 400);
-  } catch(e) { alert('Error submitting. Check your Firebase config. ' + e.message); }
+function signOut(){
+  kills.forEach(function(u){u()});kills=[];done.clear();live={};user='';admin=false;
+  $id('appNav').classList.remove('on');
+  $id('minBar').classList.remove('on');
+  $id('aPwd').value='';$id('sName').value='';$id('sErr').textContent='';$id('aErr').textContent='';
+  show('setupScreen');
 }
 
-function updateStudentProgress() {
-  const done  = submittedCards.size;
-  const total = presentations.length;
-  const pct   = total ? Math.round((done/total)*100) : 0;
-  document.getElementById('progressLabel').textContent = `${done} of ${total} presentations reviewed`;
-  document.getElementById('progressPct').textContent   = `${pct}%`;
-  document.getElementById('progressFill').style.width  = pct + '%';
-  // update min bar
-  const minBar = document.getElementById('minBar');
-  const minCount = document.getElementById('minBarCount');
-  const minText = document.getElementById('minBarText');
-  if (minBar) {
-    if (done >= 5) {
-      minBar.style.background = '#1a3a1a';
-      minCount.style.color = '#6fcf6f';
-      minCount.textContent = `✓ ${done} reviewed — minimum met!`;
-      minText.innerHTML = done >= total
-        ? '<strong style="color:#6fcf6f">All ' + total + ' presentations reviewed!</strong>'
-        : `<span style="color:#aaa">Nice work! You can keep going or you're done.</span>`;
-    } else {
-      minBar.style.background = 'var(--ink)';
-      minCount.style.color = 'var(--sun)';
-      minCount.textContent = `${done} / 5 minimum`;
-      minText.innerHTML = `Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.`;
-    }
+// ── BUILD CARDS ────────────────────────────────
+function buildCards(){
+  var c=$id('presContainer');c.innerHTML='';
+  pres.forEach(function(t,i){c.appendChild(makeCard(i,t))});
+  updateProg();
+  openCard(0);
+}
+
+function makeCard(i,title){
+  var d=document.createElement('div');
+  d.className='pres-card';d.id='card-'+i;
+  var po=POS.map(function(o){return'<option value="'+x(o)+'">'+x(o)+'</option>'}).join('');
+  var co=CON.map(function(o){return'<option value="'+x(o)+'">'+x(o)+'</option>'}).join('');
+  d.innerHTML=
+    '<div class="pres-head" onclick="togCard('+i+')">' +
+      '<div class="pres-num">'+pad(i+1)+'</div>' +
+      '<div class="pres-meta"><div class="pres-sub">Presentation '+(i+1)+'</div><div class="pres-title">'+x(title)+'</div></div>' +
+      '<div class="badge" id="bdg-'+i+'">Not started</div>' +
+      '<div class="chev" id="chv-'+i+'">▸</div>' +
+    '</div>' +
+    '<div class="pres-body" id="body-'+i+'">' +
+      '<div class="section"><div class="section-label pos">Positive Observation</div>' +
+        '<div class="bullet-row">' +
+          '<select class="bselect" id="s1-'+i+'"><option value="">— Choose type —</option>'+po+'</select>' +
+          '<textarea class="btextarea" id="t1-'+i+'" placeholder="Write your observation…" rows="2"></textarea>' +
+        '</div></div>' +
+      '<div class="section"><div class="section-label con">Constructive Suggestion</div>' +
+        '<div class="bullet-row">' +
+          '<select class="bselect" id="s2-'+i+'"><option value="">— Choose type —</option>'+co+'</select>' +
+          '<textarea class="btextarea" id="t2-'+i+'" placeholder="Write your suggestion…" rows="2"></textarea>' +
+        '</div></div>' +
+      '<div class="card-actions" id="act-'+i+'"><button class="btn-submit" onclick="submitCard('+i+')">Submit Review ✓</button></div>' +
+      '<div class="live-sec"><div class="live-lbl"><div class="live-dot"></div> Live Responses</div>' +
+        '<div class="live-list" id="liv-'+i+'"><div class="live-empty">No responses yet…</div></div>' +
+      '</div>' +
+    '</div>';
+  return d;
+}
+
+function togCard(i){
+  var b=$id('body-'+i),c=$id('chv-'+i),open=b.classList.contains('open');
+  document.querySelectorAll('.pres-body').forEach(function(el){el.classList.remove('open')});
+  document.querySelectorAll('.chev').forEach(function(el){el.textContent='▸'});
+  if(!open){b.classList.add('open');c.textContent='▾'}
+}
+function openCard(i){var b=$id('body-'+i),c=$id('chv-'+i);if(b&&c){b.classList.add('open');c.textContent='▾'}}
+
+async function submitCard(i){
+  var b1t=$id('s1-'+i).value.trim();
+  var b1=$id('t1-'+i).value.trim();
+  var b2t=$id('s2-'+i).value.trim();
+  var b2=$id('t2-'+i).value.trim();
+  if(!b1||!b2){alert('Please fill in both bullet points before submitting.');return}
+  try{
+    await window._add(col(i),{name:user,b1type:b1t,b1text:b1,b2type:b2t,b2text:b2,ts:window._ts()});
+    done.add(i);
+    $id('card-'+i).classList.add('done-card');
+    $id('bdg-'+i).textContent='✓ Submitted';$id('bdg-'+i).classList.add('ok');
+    $id('act-'+i).innerHTML='<div class="done-label">✓ Submitted</div>';
+    ['s1-'+i,'t1-'+i,'s2-'+i,'t2-'+i].forEach(function(id){var el=$id(id);if(el)el.disabled=true});
+    updateProg();
+    if(i+1<pres.length)setTimeout(function(){togCard(i+1);openCard(i+1)},400);
+  }catch(e){alert('Submit error: '+e.message)}
+}
+
+function updateProg(){
+  var n=done.size,tot=pres.length,pct=tot?Math.round(n/tot*100):0;
+  $id('progLbl').textContent=n+' of '+tot+' reviewed';
+  $id('progPct').textContent=pct+'%';
+  $id('progFill').style.width=pct+'%';
+  var bar=$id('minBar'),cnt=$id('minCount'),txt=$id('minTxt');
+  if(n>=5){
+    bar.style.background='#162916';cnt.style.color='#6fcf6f';
+    cnt.textContent='✓ '+n+' reviewed — minimum met!';
+    txt.innerHTML=n>=tot?'<strong style="color:#6fcf6f">All '+tot+' presentations reviewed!</strong>':'<span style="color:#aaa">Minimum met! Keep going or you\'re done.</span>';
+  }else{
+    bar.style.background='var(--ink)';cnt.style.color='var(--sun)';
+    cnt.textContent=n+' / 5 minimum';
+    txt.innerHTML='Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.';
   }
 }
 
-// ── Live subscription ──
-function subscribeToAll() {
-  presentations.forEach((_, i) => {
-    const q   = window._query(responsesCol(i), window._orderBy('ts', 'asc'));
-    const unsub = window._onSnapshot(q, snap => {
-      const responses = [];
-      snap.forEach(d => responses.push({ id: d.id, ...d.data() }));
-      allResponses[i] = responses;
-      renderLiveList(i, responses);
-      if (isAdmin) {
-        renderAdminByPres();
-        renderAdminAll();
-        updateAdminStats();
-      }
+// ── SUBSCRIPTIONS ──────────────────────────────
+function subAll(){
+  pres.forEach(function(_,i){
+    var q=window._q(col(i),window._ord('ts','asc'));
+    var kill=window._snap(q,function(snap){
+      var rows=[];snap.forEach(function(d){rows.push(Object.assign({id:d.id},d.data()))});
+      live[i]=rows;renderLive(i,rows);
+      if(admin){renderByPres();renderAll();updateStats()}
     });
-    unsubscribes.push(unsub);
+    kills.push(kill);
   });
 }
 
-function renderLiveList(i, responses) {
-  const list = document.getElementById(`live-list-${i}`);
-  if (!list) return;
-  if (!responses || responses.length === 0) {
-    list.innerHTML = '<div class="live-empty">No responses yet…</div>';
-    return;
-  }
-  list.innerHTML = responses.map(r => `
-    <div class="live-response-item">
-      <div class="live-resp-author">${escHtml(r.name)}</div>
-      <div class="live-resp-bullet">
-        <span class="live-resp-tag tag-positive">${shortTag(r.b1type)}</span>
-        <span class="live-resp-text">${escHtml(r.b1text)}</span>
-      </div>
-      <div class="live-resp-bullet">
-        <span class="live-resp-tag tag-constructive">${shortTag(r.b2type)}</span>
-        <span class="live-resp-text">${escHtml(r.b2text)}</span>
-      </div>
-    </div>
-  `).join('');
+function renderLive(i,rows){
+  var el=$id('liv-'+i);if(!el)return;
+  if(!rows||!rows.length){el.innerHTML='<div class="live-empty">No responses yet…</div>';return}
+  el.innerHTML=rows.map(function(r){
+    return'<div class="live-item"><div class="live-author">'+x(r.name)+'</div>' +
+      '<div class="live-bullet"><span class="ltag tp">'+tag(r.b1type)+'</span><span>'+x(r.b1text)+'</span></div>' +
+      '<div class="live-bullet"><span class="ltag tc">'+tag(r.b2type)+'</span><span>'+x(r.b2text)+'</span></div></div>';
+  }).join('');
 }
 
-function shortTag(type) {
-  if (!type) return '–';
-  const map = {
-    "Something that I loved about this project": "Loved",
-    "Something that is working well": "Working",
-    "Something about the concept that is interesting": "Concept",
-    "Something about the formal aspects of the work that I find interesting": "Formal",
-    "A suggestion for the formal aspects of the work": "Formal ↑",
-    "A suggestion for the conceptual aspects of the work": "Concept ↑",
-    "An idea to push the project further": "Push",
-    "An idea to expand the project": "Expand",
-    "A suggested revision to the project": "Revise",
-  };
-  return map[type] || type.slice(0,10);
+// ── ADMIN ──────────────────────────────────────
+function aTab(t){
+  ['byPres','all','settings'].forEach(function(s){$id('tab-'+s).style.display=s===t?'block':'none'});
+  document.querySelectorAll('.atab').forEach(function(b,i){b.classList.toggle('active',['byPres','all','settings'][i]===t)});
+  if(t==='byPres')renderByPres();
+  if(t==='all')renderAll();
+  if(t==='settings')renderEditList();
 }
 
-// ════════════════════════════════════════════════════════
-//  ADMIN DASHBOARD
-// ════════════════════════════════════════════════════════
-function showAdminApp() {
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('appNav').classList.add('visible');
-  document.getElementById('adminApp').classList.add('visible');
-  document.getElementById('navUserName').textContent = 'Instructor';
-  renderEditPresList();
-  subscribeToAll();
-  updateAdminStats();
+function updateStats(){
+  var tot=0,studs=new Set();
+  Object.values(live).forEach(function(arr){arr.forEach(function(r){tot++;studs.add(r.name)})});
+  $id('stTotal').textContent=tot;$id('stStudents').textContent=studs.size;$id('stPres').textContent=pres.length;
 }
 
-function switchAdminTab(tab) {
-  ['byPresentation','allResponses','settings'].forEach(t => {
-    document.getElementById(`adminTab-${t}`).style.display = t===tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.admin-tab-btn').forEach((btn,i) => {
-    btn.classList.toggle('active', ['byPresentation','allResponses','settings'][i] === tab);
-  });
-  if (tab === 'byPresentation') renderAdminByPres();
-  if (tab === 'allResponses')   renderAdminAll();
-  if (tab === 'settings')       renderEditPresList();
-}
-
-function updateAdminStats() {
-  let total = 0, students = new Set();
-  Object.values(allResponses).forEach(arr => {
-    arr.forEach(r => { total++; students.add(r.name); });
-  });
-  document.getElementById('statResponses').textContent    = total;
-  document.getElementById('statStudents').textContent     = students.size;
-  document.getElementById('statPresentations').textContent = presentations.length;
-}
-
-function renderAdminByPres() {
-  const q    = (document.getElementById('adminSearch')?.value||'').toLowerCase();
-  const grid = document.getElementById('adminGrid');
-  grid.innerHTML = '';
-
-  presentations.forEach((title, i) => {
-    let responses = allResponses[i] || [];
-    if (q) responses = responses.filter(r =>
-      r.name?.toLowerCase().includes(q) ||
-      r.b1text?.toLowerCase().includes(q) ||
-      r.b2text?.toLowerCase().includes(q)
-    );
-    const card = document.createElement('div');
-    card.className = 'admin-pres-card';
-    card.innerHTML = `
-      <div class="admin-pres-head">
-        <div class="admin-pres-num">${String(i+1).padStart(2,'0')}</div>
-        <div class="admin-pres-title">${escHtml(title)}</div>
-        <div class="admin-resp-count">${responses.length}</div>
-      </div>
-      <div class="admin-pres-body">
-        ${responses.length === 0
-          ? '<div class="admin-empty">No responses yet</div>'
-          : responses.map(r => `
-            <div class="admin-resp-item">
-              <div class="admin-resp-name">${escHtml(r.name)}</div>
-              <div class="admin-bullet-line">
-                <span class="admin-tag tag-positive">${shortTag(r.b1type)}</span>
-                <span>${escHtml(r.b1text)}</span>
-              </div>
-              <div class="admin-bullet-line">
-                <span class="admin-tag tag-constructive">${shortTag(r.b2type)}</span>
-                <span>${escHtml(r.b2text)}</span>
-              </div>
-            </div>`).join('')
-        }
-      </div>
-    `;
-    grid.appendChild(card);
+function renderByPres(){
+  var q=(($id('srchPres')||{}).value||'').toLowerCase();
+  var g=$id('agrid');g.innerHTML='';
+  pres.forEach(function(title,i){
+    var rows=(live[i]||[]).filter(function(r){return!q||r.name.toLowerCase().includes(q)||r.b1text.toLowerCase().includes(q)||r.b2text.toLowerCase().includes(q)});
+    var card=document.createElement('div');card.className='acard';
+    card.innerHTML='<div class="acard-h"><div class="acard-n">'+pad(i+1)+'</div><div class="acard-t">'+x(title)+'</div><div class="acnt">'+rows.length+'</div></div>' +
+      '<div class="acard-b">'+(rows.length?rows.map(function(r){
+        return'<div class="aresp"><div class="aname">'+x(r.name)+'</div>' +
+          '<div class="abullet"><span class="atag tp">'+tag(r.b1type)+'</span><span>'+x(r.b1text)+'</span></div>' +
+          '<div class="abullet"><span class="atag tc">'+tag(r.b2type)+'</span><span>'+x(r.b2text)+'</span></div></div>';
+      }).join(''):'<div class="aempty">No responses yet</div>')+'</div>';
+    g.appendChild(card);
   });
 }
 
-function renderAdminAll() {
-  const q   = (document.getElementById('adminSearchAll')?.value||'').toLowerCase();
-  const wrap = document.getElementById('allResponsesWrap');
-  if (!wrap) return;
-  const all = [];
-  presentations.forEach((title, i) => {
-    (allResponses[i]||[]).forEach(r => all.push({...r, presIndex: i, presTitle: title}));
-  });
-  all.sort((a,b) => (b.ts?.seconds||0) - (a.ts?.seconds||0));
-  const filtered = q
-    ? all.filter(r => r.name?.toLowerCase().includes(q)||r.b1text?.toLowerCase().includes(q)||r.b2text?.toLowerCase().includes(q))
-    : all;
-
-  if (filtered.length === 0) {
-    wrap.innerHTML = '<div class="admin-empty" style="padding:20px">No responses yet.</div>';
-    return;
-  }
-  wrap.innerHTML = filtered.map(r => `
-    <div class="all-resp-row">
-      <div class="all-resp-meta">
-        <div class="all-resp-author">${escHtml(r.name)}</div>
-        <div class="all-resp-pres">${escHtml(r.presTitle)}</div>
-        <div class="all-resp-time">${r.ts?.seconds ? new Date(r.ts.seconds*1000).toLocaleTimeString() : ''}</div>
-      </div>
-      <div>
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--sun);margin-bottom:6px">Positive</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${escHtml(r.b1type||'')}</div>
-        <div style="font-size:13px">${escHtml(r.b1text)}</div>
-      </div>
-      <div>
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--flame);margin-bottom:6px">Constructive</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${escHtml(r.b2type||'')}</div>
-        <div style="font-size:13px">${escHtml(r.b2text)}</div>
-      </div>
-    </div>
-  `).join('');
+function renderAll(){
+  var q=(($id('srchAll')||{}).value||'').toLowerCase();
+  var all=[];
+  pres.forEach(function(t,i){(live[i]||[]).forEach(function(r){all.push(Object.assign({pt:t,pi:i},r))})});
+  all.sort(function(a,b){return((b.ts&&b.ts.seconds)||0)-((a.ts&&a.ts.seconds)||0)});
+  if(q)all=all.filter(function(r){return r.name.toLowerCase().includes(q)||r.b1text.toLowerCase().includes(q)||r.b2text.toLowerCase().includes(q)});
+  var w=$id('allWrap');
+  if(!all.length){w.innerHTML='<div class="aempty" style="padding:20px">No responses yet.</div>';return}
+  w.innerHTML=all.map(function(r){
+    return'<div class="allrow">' +
+      '<div><div class="allauthor">'+x(r.name)+'</div><div class="allpres">'+x(r.pt)+'</div><div class="alltime">'+(r.ts&&r.ts.seconds?new Date(r.ts.seconds*1000).toLocaleTimeString():'')+'</div></div>' +
+      '<div><div class="clbl p">Positive</div><div class="ctype">'+x(r.b1type||'')+'</div><div class="ctext">'+x(r.b1text)+'</div></div>' +
+      '<div><div class="clbl c">Constructive</div><div class="ctype">'+x(r.b2type||'')+'</div><div class="ctext">'+x(r.b2text)+'</div></div>' +
+    '</div>';
+  }).join('');
 }
 
-function renderEditPresList() {
-  const list = document.getElementById('editPresList');
-  if (!list) return;
-  list.innerHTML = '';
-  presentations.forEach((title, i) => {
-    const row = document.createElement('div');
-    row.className = 'edit-pres-row';
-    row.innerHTML = `
-      <div class="edit-pres-num">${i+1}</div>
-      <input class="edit-pres-input" type="text" value="${escHtml(title)}" placeholder="Presentation title" id="editPres-${i}"/>
-      <button class="btn-remove-pres" onclick="removePresRow(${i})">✕</button>
-    `;
+function renderEditList(){
+  var list=$id('editList');list.innerHTML='';
+  pres.forEach(function(t,i){
+    var row=document.createElement('div');row.className='erow';
+    row.innerHTML='<div class="enum">'+(i+1)+'</div><input class="einput" id="ep-'+i+'" type="text" value="'+x(t)+'" placeholder="Title"/><button class="btn-rm" onclick="removeRow('+i+')">✕</button>';
     list.appendChild(row);
   });
 }
-
-function addPresRow() {
-  presentations.push(`Presentation ${presentations.length + 1}`);
-  renderEditPresList();
+function addRow(){pres.push('Presentation '+(pres.length+1));renderEditList()}
+function removeRow(i){if(pres.length<=1){alert('Must have at least one.');return}pres.splice(i,1);renderEditList()}
+async function saveTitles(){
+  var ins=document.querySelectorAll('[id^="ep-"]'),titles=[];
+  ins.forEach(function(el){var v=el.value.trim();if(v)titles.push(v)});
+  if(!titles.length){alert('Add at least one.');return}
+  pres=titles;
+  try{await window._set(cfgRef(),{presentations:pres,adminPassword:adminPwd});alert('Saved!');updateStats();renderByPres()}catch(e){alert('Error: '+e.message)}
 }
-
-function removePresRow(i) {
-  if (presentations.length <= 1) { alert('Must have at least one presentation.'); return; }
-  presentations.splice(i, 1);
-  renderEditPresList();
+async function doChangePwd(){
+  var p1=$id('p1').value,p2=$id('p2').value,m=$id('pwdMsg');
+  if(!p1){m.style.color='#e8620a';m.textContent='Enter a password.';return}
+  if(p1!==p2){m.style.color='#e8620a';m.textContent='Passwords do not match.';return}
+  adminPwd=p1;
+  try{await window._set(cfgRef(),{presentations:pres,adminPassword:adminPwd});m.style.color='green';m.textContent='Updated!';$id('p1').value='';$id('p2').value=''}catch(e){m.style.color='#e8620a';m.textContent='Error: '+e.message}
 }
-
-async function savePresSettings() {
-  const inputs = document.querySelectorAll('[id^="editPres-"]');
-  const newTitles = [];
-  inputs.forEach(inp => {
-    const val = inp.value.trim();
-    if (val) newTitles.push(val);
-  });
-  if (newTitles.length === 0) { alert('Add at least one presentation.'); return; }
-  presentations = newTitles;
-  try {
-    await window._setDoc(configDoc(), { presentations, adminPassword: ADMIN_PASSWORD });
-    alert('Presentation titles saved!');
-    updateAdminStats();
-    renderAdminByPres();
-  } catch(e) { alert('Error saving: ' + e.message); }
+async function doClear(){
+  if(!confirm('Delete ALL responses? This cannot be undone.'))return;
+  try{
+    for(var i=0;i<pres.length;i++){var s=await window._get(col(i));for(var j=0;j<s.docs.length;j++)await window._del(s.docs[j].ref)}
+    live={};renderByPres();renderAll();updateStats();
+  }catch(e){alert('Error: '+e.message)}
 }
-
-async function changePassword() {
-  const np = document.getElementById('newPwdInput').value;
-  const cp = document.getElementById('confirmPwdInput').value;
-  const msg = document.getElementById('pwdMsg');
-  if (!np) { msg.style.color=var_flame(); msg.textContent='Enter a new password.'; return; }
-  if (np !== cp) { msg.style.color=var_flame(); msg.textContent='Passwords do not match.'; return; }
-  ADMIN_PASSWORD = np;
-  try {
-    await window._setDoc(configDoc(), { presentations, adminPassword: ADMIN_PASSWORD });
-    msg.style.color='green'; msg.textContent='Password updated!';
-    document.getElementById('newPwdInput').value='';
-    document.getElementById('confirmPwdInput').value='';
-  } catch(e) { msg.style.color=var_flame(); msg.textContent='Error: '+e.message; }
+function doExport(){
+  var rows=[['Student','Presentation','Positive Type','Positive Response','Constructive Type','Constructive Response','Time']];
+  pres.forEach(function(t,i){(live[i]||[]).forEach(function(r){rows.push([r.name||'',t,r.b1type||'',r.b1text||'',r.b2type||'',r.b2text||'',r.ts&&r.ts.seconds?new Date(r.ts.seconds*1000).toLocaleString():''])})});
+  var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='peer_review.csv';a.click();
 }
-function var_flame() { return '#e8620a'; }
-
-async function clearAllResponses() {
-  if (!confirm('Delete ALL responses from every presentation? This cannot be undone.')) return;
-  try {
-    for (let i = 0; i < presentations.length; i++) {
-      const snap = await window._getDocs(responsesCol(i));
-      for (const d of snap.docs) await window._deleteDoc(d.ref);
-    }
-    allResponses = {};
-    renderAdminByPres();
-    renderAdminAll();
-    updateAdminStats();
-  } catch(e) { alert('Error: ' + e.message); }
-}
-
-function exportAdminCSV() {
-  const rows = [['Student','Presentation','Positive Type','Positive Response','Constructive Type','Constructive Response','Time']];
-  presentations.forEach((title, i) => {
-    (allResponses[i]||[]).forEach(r => {
-      rows.push([
-        r.name||'', title,
-        r.b1type||'', r.b1text||'',
-        r.b2type||'', r.b2text||'',
-        r.ts?.seconds ? new Date(r.ts.seconds*1000).toLocaleString() : ''
-      ]);
-    });
-  });
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'peer_review_responses.csv';
-  a.click();
-}
-
-// ════════════════════════════════════════════════════════
-//  UTILS
-// ════════════════════════════════════════════════════════
-function escHtml(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── INIT ──
-document.addEventListener('firebase-ready', async () => {
-  console.log('Firebase ready');
-});
-
-// Check if firebase config is placeholder
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    if (!window._fbReady) {
-      document.getElementById('configBanner').style.display = 'block';
-    }
-  }, 3000);
-});
 </script>
 </body>
 </html>
