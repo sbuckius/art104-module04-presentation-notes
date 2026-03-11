@@ -601,27 +601,32 @@ function exportPDF(){
     y+=52;
 
     // Bullet 1 - positive
-    var lines1=doc.splitTextToSize(b1,cw-88);
-    var h1=Math.max(50,26+lines1.length*14);
+    var txtX=mg+30,txtW=cw-46,lineH=15;
+    doc.setFont('helvetica','normal');doc.setFontSize(11);
+    var lines1=doc.splitTextToSize(b1,txtW);
+    var tagLines1=doc.splitTextToSize((b1t||'Positive Observation').toUpperCase(),txtW);
+    var h1=Math.max(52,14+tagLines1.length*10+6+lines1.length*lineH+10);
     chkY(h1+10);
     doc.setFillColor(255,248,220);doc.setDrawColor(240,216,120);doc.roundedRect(mg,y,cw,h1,4,4,'FD');
-    doc.setFillColor(245,166,35);doc.circle(mg+16,y+18,4,'F');
+    doc.setFillColor(245,166,35);doc.circle(mg+16,y+16,4,'F');
     doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(180,130,40);
-    doc.text((b1t||'POSITIVE OBSERVATION').toUpperCase(),mg+28,y+21);
+    doc.text(tagLines1,txtX,y+19);
     doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(30,18,6);
-    doc.text(lines1,mg+28,y+35);
+    doc.text(lines1,txtX,y+19+tagLines1.length*10+6);
     y+=h1+8;
 
     // Bullet 2 - constructive
-    var lines2=doc.splitTextToSize(b2,cw-88);
-    var h2=Math.max(50,26+lines2.length*14);
+    doc.setFont('helvetica','normal');doc.setFontSize(11);
+    var lines2=doc.splitTextToSize(b2,txtW);
+    var tagLines2=doc.splitTextToSize((b2t||'Constructive Suggestion').toUpperCase(),txtW);
+    var h2=Math.max(52,14+tagLines2.length*10+6+lines2.length*lineH+10);
     chkY(h2+10);
-    doc.setFillColor(255,242,230);doc.setDrawColor(232,98,10,0.3);doc.roundedRect(mg,y,cw,h2,4,4,'FD');
-    doc.setFillColor(232,98,10);doc.circle(mg+16,y+18,4,'F');
+    doc.setFillColor(255,242,230);doc.setDrawColor(232,120,10);doc.roundedRect(mg,y,cw,h2,4,4,'FD');
+    doc.setFillColor(232,98,10);doc.circle(mg+16,y+16,4,'F');
     doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(180,80,20);
-    doc.text((b2t||'CONSTRUCTIVE SUGGESTION').toUpperCase(),mg+28,y+21);
+    doc.text(tagLines2,txtX,y+19);
     doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(30,18,6);
-    doc.text(lines2,mg+28,y+35);
+    doc.text(lines2,txtX,y+19+tagLines2.length*10+6);
     y+=h2+16;
   });
 
