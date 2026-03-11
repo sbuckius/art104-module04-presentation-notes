@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Peer Review — Reality in a Digital Age</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--sun:#f5a623;--flame:#e8620a;--amber:#f0c040;--paper:#fffcf4;--ink:#1e1206;--muted:#8a6a3a;--border:#f0d898;--warm:#fef3d0;--glow:rgba(245,166,35,.18)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -210,7 +211,10 @@ main{max-width:860px;margin:0 auto;padding:40px 24px 140px}
   </main>
   <div id="minBar">
     <span id="minTxt" style="color:#aaa">Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.</span>
-    <span id="minCount">0 / 5 minimum</span>
+    <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
+      <span id="minCount">0 / 5 minimum</span>
+      <button id="pdfBtn" onclick="exportPDF()" style="display:none;background:var(--sun);border:none;color:var(--ink);padding:10px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .2s" onmouseover="this.style.background='#fff'" onmouseout="this.style.background='var(--sun)'">⬇ Export PDF</button>
+    </div>
   </div>
 </div>
 
@@ -219,10 +223,13 @@ main{max-width:860px;margin:0 auto;padding:40px 24px 140px}
   <div class="admin-hdr">
     <div class="eyebrow">Instructor Dashboard — Reality in a Digital Age</div>
     <h1>Peer Review <span>Live</span></h1>
-    <div class="stats">
-      <div><div class="snum" id="stTotal">0</div><div class="slbl">Responses</div></div>
-      <div><div class="snum" id="stStudents">0</div><div class="slbl">Students</div></div>
-      <div><div class="snum" id="stPres">7</div><div class="slbl">Presentations</div></div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:16px">
+      <div class="stats" style="margin-top:0">
+        <div><div class="snum" id="stTotal">0</div><div class="slbl">Responses</div></div>
+        <div><div class="snum" id="stStudents">0</div><div class="slbl">Students</div></div>
+        <div><div class="snum" id="stPres">7</div><div class="slbl">Presentations</div></div>
+      </div>
+      <button onclick="doClear()" style="background:none;border:2px solid #c0392b;color:#e74c3c;padding:11px 24px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap" onmouseover="this.style.background='#c0392b';this.style.color='white'" onmouseout="this.style.background='none';this.style.color='#e74c3c'">🗑 Reset All Responses</button>
     </div>
   </div>
   <div class="admin-main">
@@ -432,15 +439,17 @@ function updateProg(){
   $id('progLbl').textContent=n+' of '+tot+' reviewed';
   $id('progPct').textContent=pct+'%';
   $id('progFill').style.width=pct+'%';
-  var bar=$id('minBar'),cnt=$id('minCount'),txt=$id('minTxt');
+  var bar=$id('minBar'),cnt=$id('minCount'),txt=$id('minTxt'),btn=$id('pdfBtn');
   if(n>=5){
     bar.style.background='#162916';cnt.style.color='#6fcf6f';
-    cnt.textContent='✓ '+n+' reviewed — minimum met!';
+    cnt.textContent='\u2713 '+n+' reviewed \u2014 minimum met!';
     txt.innerHTML=n>=tot?'<strong style="color:#6fcf6f">All '+tot+' presentations reviewed!</strong>':'<span style="color:#aaa">Minimum met! Keep going or you\'re done.</span>';
+    if(btn)btn.style.display='inline-block';
   }else{
     bar.style.background='var(--ink)';cnt.style.color='var(--sun)';
     cnt.textContent=n+' / 5 minimum';
     txt.innerHTML='Review at least <strong style="color:var(--amber)">5 presentations</strong> to complete the assignment.';
+    if(btn)btn.style.display='none';
   }
 }
 
@@ -546,6 +555,87 @@ async function doClear(){
     live={};renderByPres();renderAll();updateStats();
   }catch(e){alert('Error: '+e.message)}
 }
+function exportPDF(){
+  if(!window.jspdf){alert('PDF library not loaded yet, please try again.');return}
+  var jsPDF=window.jspdf.jsPDF;
+  var doc=new jsPDF({unit:'pt',format:'letter'});
+  var PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight();
+  var mg=52,cw=PW-mg*2,y=0;
+
+  function newPage(){doc.addPage();y=mg;footer()}
+  function chkY(n){if(y+n>PH-52)newPage()}
+  function footer(){
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(160,140,100);
+    doc.text(user+' · Peer Review Notes',mg,PH-28);
+    doc.text(new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),PW-mg,PH-28,{align:'right'});
+  }
+
+  // Header
+  doc.setFillColor(30,18,6);doc.rect(0,0,PW,110,'F');
+  doc.setFillColor(232,98,10);doc.rect(0,0,6,110,'F');
+  doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(245,166,35);
+  doc.text('REALITY IN A DIGITAL AGE — PEER REVIEW NOTES',mg,38);
+  doc.setFont('helvetica','bold');doc.setFontSize(24);doc.setTextColor(255,252,244);
+  doc.text('Peer Review Notes',mg,68);
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(180,160,120);
+  doc.text(user+'   ·   '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),mg,92);
+  y=134;
+
+  // Each submitted presentation
+  pres.forEach(function(title,i){
+    if(!done.has(i))return;
+    var b1t=($id('s1-'+i)||{}).value||'';
+    var b1=($id('t1-'+i)||{}).value||'(no response)';
+    var b2t=($id('s2-'+i)||{}).value||'';
+    var b2=($id('t2-'+i)||{}).value||'(no response)';
+    chkY(80);
+
+    // Presentation header bar
+    doc.setFillColor(30,18,6);doc.roundedRect(mg,y,cw,40,4,4,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(240,192,64);
+    doc.text(pad(i+1),mg+14,y+26);
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(255,252,244);
+    doc.text(title,mg+48,y+16);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(150,130,90);
+    doc.text('Presentation '+(i+1),mg+48,y+30);
+    y+=52;
+
+    // Bullet 1 - positive
+    var lines1=doc.splitTextToSize(b1,cw-88);
+    var h1=Math.max(50,26+lines1.length*14);
+    chkY(h1+10);
+    doc.setFillColor(255,248,220);doc.setDrawColor(240,216,120);doc.roundedRect(mg,y,cw,h1,4,4,'FD');
+    doc.setFillColor(245,166,35);doc.circle(mg+16,y+18,4,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(180,130,40);
+    doc.text((b1t||'POSITIVE OBSERVATION').toUpperCase(),mg+28,y+21);
+    doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(30,18,6);
+    doc.text(lines1,mg+28,y+35);
+    y+=h1+8;
+
+    // Bullet 2 - constructive
+    var lines2=doc.splitTextToSize(b2,cw-88);
+    var h2=Math.max(50,26+lines2.length*14);
+    chkY(h2+10);
+    doc.setFillColor(255,242,230);doc.setDrawColor(232,98,10,0.3);doc.roundedRect(mg,y,cw,h2,4,4,'FD');
+    doc.setFillColor(232,98,10);doc.circle(mg+16,y+18,4,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(180,80,20);
+    doc.text((b2t||'CONSTRUCTIVE SUGGESTION').toUpperCase(),mg+28,y+21);
+    doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(30,18,6);
+    doc.text(lines2,mg+28,y+35);
+    y+=h2+16;
+  });
+
+  // Page numbers
+  var total=doc.internal.getNumberOfPages();
+  for(var p=1;p<=total;p++){
+    doc.setPage(p);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(160,140,100);
+    if(p>1)footer();
+    doc.text('Page '+p+' of '+total,PW/2,PH-28,{align:'center'});
+  }
+  doc.save(user.replace(/\s+/g,'_')+'_Peer_Review.pdf');
+}
+
 function doExport(){
   var rows=[['Student','Presentation','Positive Type','Positive Response','Constructive Type','Constructive Response','Time']];
   pres.forEach(function(t,i){(live[i]||[]).forEach(function(r){rows.push([r.name||'',t,r.b1type||'',r.b1text||'',r.b2type||'',r.b2text||'',r.ts&&r.ts.seconds?new Date(r.ts.seconds*1000).toLocaleString():''])})});
