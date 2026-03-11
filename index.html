@@ -560,88 +560,122 @@ function exportPDF(){
   var jsPDF=window.jspdf.jsPDF;
   var doc=new jsPDF({unit:'pt',format:'letter'});
   var PW=612, PH=792;
-  var L=54, R=54, y=54;
-  var TW=PW-L-R; // 504pt — the ONLY width used for all text
+  var L=54, R=54;
+  var TW=PW-L-R; // 504pt — never changes
+  var y=54;
 
   function addPage(){ doc.addPage(); y=54; }
   function need(h){ if(y+h>PH-54) addPage(); }
 
-  // helper: set font then split — always in this order
+  // ALWAYS set font before splitting
   function split(txt, sz, style){
     doc.setFont('helvetica', style||'normal');
     doc.setFontSize(sz);
-    return doc.splitTextToSize(String(txt), TW);
+    return doc.splitTextToSize(String(txt||''), TW);
   }
-
-  function drawText(lines, sz, style, r, g, b){
+  // same but indented text — still splits to TW so it never overflows
+  function splitIndent(txt, sz, style){
     doc.setFont('helvetica', style||'normal');
     doc.setFontSize(sz);
-    doc.setTextColor(r||0, g||0, b||0);
-    var lh = sz*1.35;
-    need(lines.length*lh+4);
-    doc.text(lines, L, y);
-    y += lines.length*lh + 4;
+    return doc.splitTextToSize(String(txt||''), TW);
   }
 
-  // ── COVER HEADER ──
+  // ── HEADER ──
+  // dark background
   doc.setFillColor(30,18,6);
-  doc.rect(0,0,PW,90,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(245,166,35);
-  doc.text('Peer Review Notes', L, 40);
+  doc.rect(0,0,PW,100,'F');
+  // orange left stripe
+  doc.setFillColor(232,98,10);
+  doc.rect(0,0,6,100,'F');
+  // amber glow circle (decorative)
+  doc.setFillColor(245,166,35);
+  doc.circle(PW-40, 20, 55, 'F'); // partial circle top-right
+  doc.setFillColor(30,18,6);
+  doc.rect(PW-100,0,100,100,'F'); // mask right edge back to dark
+
+  doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(245,166,35);
+  doc.text('REALITY IN A DIGITAL AGE', L, 28);
+  doc.setFont('helvetica','bold'); doc.setFontSize(24); doc.setTextColor(255,252,244);
+  doc.text('Peer Review Notes', L, 56);
   doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(180,150,100);
-  doc.text('Reality in a Digital Age', L, 58);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(150,130,90);
   var dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  doc.text(user + '   \u00b7   ' + dateStr, L, 76);
-  y = 110;
+  doc.text(user + '   \u00b7   ' + dateStr, L, 78);
+  y = 120;
 
   // ── EACH PRESENTATION ──
   pres.forEach(function(title, i){
     if(!done.has(i)) return;
 
     var b1label = ($id('s1-'+i)||{}).value || 'Positive Observation';
-    var b1text  = ($id('t1-'+i)||{}).value || '';
+    var b1text  = ($id('t1-'+i)||{}).value || '(no response)';
     var b2label = ($id('s2-'+i)||{}).value || 'Constructive Suggestion';
-    var b2text  = ($id('t2-'+i)||{}).value || '';
+    var b2text  = ($id('t2-'+i)||{}).value || '(no response)';
 
-    // ── Presentation title ──
-    need(30);
+    // Pre-split everything BEFORE drawing any boxes (so we know heights)
+    var lbl1lines  = splitIndent(b1label.toUpperCase(), 8, 'bold');
+    var body1lines = splitIndent(b1text, 11, 'normal');
+    var lbl2lines  = splitIndent(b2label.toUpperCase(), 8, 'bold');
+    var body2lines = splitIndent(b2text, 11, 'normal');
+
+    var lh8  = 8*1.4;
+    var lh11 = 11*1.4;
+    var pad  = 12; // inner padding top+bottom per box
+
+    var box1H = pad + lbl1lines.length*lh8 + 4 + body1lines.length*lh11 + pad;
+    var box2H = pad + lbl2lines.length*lh8 + 4 + body2lines.length*lh11 + pad;
+
+    // ── Presentation title bar ──
+    need(36 + box1H + box2H + 20);
     doc.setFillColor(30,18,6);
-    doc.rect(L-6, y-12, TW+12, 24, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(240,192,64);
-    doc.text(pad(i+1) + '.  ' + title, L, y+2);
-    y += 18;
+    doc.roundedRect(L-6, y, TW+12, 32, 3, 3, 'F');
+    // accent dot
+    doc.setFillColor(245,166,35);
+    doc.circle(L+8, y+16, 5, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(150,130,80);
+    doc.text('PRESENTATION '+(i+1), L+22, y+11);
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(255,252,244);
+    doc.text(title, L+22, y+25);
+    y += 40;
 
-    // ── Bullet 1 label ──
-    var lbl1 = split(b1label.toUpperCase(), 8, 'bold');
-    drawText(lbl1, 8, 'bold', 160, 110, 20);
+    // ── Bullet 1 box (amber/positive) ──
+    doc.setFillColor(255,248,215);
+    doc.setDrawColor(240,210,100);
+    doc.roundedRect(L-6, y, TW+12, box1H, 4, 4, 'FD');
+    // left accent bar
+    doc.setFillColor(245,166,35);
+    doc.roundedRect(L-6, y, 4, box1H, 2, 2, 'F');
+    // label
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(160,110,10);
+    doc.text(lbl1lines, L+8, y+pad+lh8*0.8);
+    // body text
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(30,18,6);
+    doc.text(body1lines, L+8, y+pad+lbl1lines.length*lh8+4+lh11*0.8);
+    y += box1H + 8;
 
-    // ── Bullet 1 body ──
-    var body1 = split(b1text || '(no response)', 11, 'normal');
-    drawText(body1, 11, 'normal', 30, 18, 6);
-    y += 6;
-
-    // ── Bullet 2 label ──
-    var lbl2 = split(b2label.toUpperCase(), 8, 'bold');
-    drawText(lbl2, 8, 'bold', 180, 70, 10);
-
-    // ── Bullet 2 body ──
-    var body2 = split(b2text || '(no response)', 11, 'normal');
-    drawText(body2, 11, 'normal', 30, 18, 6);
-    y += 12;
-
-    // divider
-    need(6);
-    doc.setDrawColor(220,200,150); doc.line(L, y, PW-R, y);
-    y += 10;
+    // ── Bullet 2 box (orange/constructive) ──
+    doc.setFillColor(255,240,225);
+    doc.setDrawColor(232,120,40);
+    doc.roundedRect(L-6, y, TW+12, box2H, 4, 4, 'FD');
+    // left accent bar
+    doc.setFillColor(232,98,10);
+    doc.roundedRect(L-6, y, 4, box2H, 2, 2, 'F');
+    // label
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(160,60,10);
+    doc.text(lbl2lines, L+8, y+pad+lh8*0.8);
+    // body text
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(30,18,6);
+    doc.text(body2lines, L+8, y+pad+lbl2lines.length*lh8+4+lh11*0.8);
+    y += box2H + 16;
   });
 
-  // ── PAGE NUMBERS ──
+  // ── PAGE NUMBERS + FOOTER ──
   var total = doc.internal.getNumberOfPages();
   for(var p=1; p<=total; p++){
     doc.setPage(p);
     doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(160,140,100);
-    doc.text('Page '+p+' of '+total, PW/2, PH-20, {align:'center'});
+    doc.text(user+' \u00b7 Peer Review Notes', L, PH-22);
+    doc.text('Page '+p+' of '+total, PW/2, PH-22, {align:'center'});
+    doc.text(dateStr, PW-R, PH-22, {align:'right'});
   }
 
   doc.save(user.replace(/\s+/g,'_')+'_Peer_Review.pdf');
